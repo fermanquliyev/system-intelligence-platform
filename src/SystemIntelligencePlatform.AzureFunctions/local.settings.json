@@ -1,0 +1,14 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "ServiceBusConnection": "<your-service-bus-connection-string>",
+    "ConnectionStrings:Default": "Server=(LocalDb)\\MSSQLLocalDB;Database=SystemIntelligencePlatform;Trusted_Connection=True;TrustServerCertificate=True",
+    "AzureLanguage:Endpoint": "<your-language-endpoint>",
+    "AzureLanguage:Key": "<your-language-key>",
+    "AzureSearch:Endpoint": "<your-search-endpoint>",
+    "AzureSearch:Key": "<your-search-key>",
+    "AzureSignalR:ConnectionString": "<your-signalr-connection-string>"
+  }
+}

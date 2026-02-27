@@ -1,8 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using Azure;
+using Azure.AI.TextAnalytics;
+using Azure.Identity;
+using Azure.Messaging.ServiceBus;
+using Azure.Search.Documents;
+using Azure.Search.Documents.Indexes;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
@@ -13,6 +19,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
 using OpenIddict.Validation.AspNetCore;
 using OpenIddict.Server.AspNetCore;
+using SystemIntelligencePlatform.AzureInfrastructure;
 using SystemIntelligencePlatform.EntityFrameworkCore;
 using SystemIntelligencePlatform.MultiTenancy;
 using SystemIntelligencePlatform.HealthChecks;
@@ -121,6 +128,7 @@ public class SystemIntelligencePlatformHttpApiHostModule : AbpModule
         ConfigureSwagger(context, configuration);
         ConfigureVirtualFileSystem(context);
         ConfigureCors(context, configuration);
+        ConfigureAzureServices(context, configuration);
     }
 
     private void ConfigureStudio(IHostEnvironment hostingEnvironment)
@@ -247,6 +255,58 @@ public class SystemIntelligencePlatformHttpApiHostModule : AbpModule
         context.Services.AddSystemIntelligencePlatformHealthChecks();
     }
 
+    private void ConfigureAzureServices(ServiceConfigurationContext context, IConfiguration configuration)
+    {
+        // Azure Service Bus
+        var sbConnStr = configuration["Azure:ServiceBus:ConnectionString"];
+        if (!string.IsNullOrEmpty(sbConnStr))
+        {
+            context.Services.AddSingleton(new ServiceBusClient(sbConnStr));
+        }
+
+        // Azure Language (Text Analytics)
+        var langEndpoint = configuration["Azure:Language:Endpoint"];
+        var langKey = configuration["Azure:Language:Key"];
+        if (!string.IsNullOrEmpty(langEndpoint) && !string.IsNullOrEmpty(langKey))
+        {
+            context.Services.AddSingleton(new TextAnalyticsClient(
+                new Uri(langEndpoint), new AzureKeyCredential(langKey)));
+        }
+
+        // Azure AI Search
+        var searchEndpoint = configuration["Azure:Search:Endpoint"];
+        var searchKey = configuration["Azure:Search:Key"];
+        var searchIndex = configuration["Azure:Search:IndexName"] ?? "incidents-index";
+        if (!string.IsNullOrEmpty(searchEndpoint) && !string.IsNullOrEmpty(searchKey))
+        {
+            var searchUri = new Uri(searchEndpoint);
+            var searchCredential = new AzureKeyCredential(searchKey);
+            context.Services.AddSingleton(new SearchClient(searchUri, searchIndex, searchCredential));
+            context.Services.AddSingleton(new SearchIndexClient(searchUri, searchCredential));
+        }
+
+        // Azure SignalR
+        var signalRConnStr = configuration["Azure:SignalR:ConnectionString"];
+        if (!string.IsNullOrEmpty(signalRConnStr))
+        {
+            context.Services.AddSignalR().AddAzureSignalR(signalRConnStr);
+        }
+        else
+        {
+            context.Services.AddSignalR();
+        }
+
+        // Application Insights
+        var aiConnStr = configuration["Azure:ApplicationInsights:ConnectionString"];
+        if (!string.IsNullOrEmpty(aiConnStr))
+        {
+            context.Services.AddApplicationInsightsTelemetry(options =>
+            {
+                options.ConnectionString = aiConnStr;
+            });
+        }
+    }
+
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
@@ -294,6 +354,9 @@ public class SystemIntelligencePlatformHttpApiHostModule : AbpModule
         });
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
-        app.UseConfiguredEndpoints();
+        app.UseConfiguredEndpoints(endpoints =>
+        {
+            endpoints.MapHub<IncidentHub>("/signalr/incidents");
+        });
     }
 }

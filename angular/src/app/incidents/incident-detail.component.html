@@ -1,0 +1,178 @@
+<div class="container-fluid" *ngIf="incident">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+      <a routerLink="/incidents" class="text-muted small text-decoration-none">
+        <i class="fa fa-arrow-left me-1"></i> Back to Incidents
+      </a>
+      <h4 class="mt-2">{{ incident.title }}</h4>
+      <div class="d-flex gap-2 mt-1">
+        <span class="badge" [ngClass]="getSeverityClass(incident.severity)">
+          {{ getSeverityLabel(incident.severity) }}
+        </span>
+        <span class="badge bg-dark">{{ getStatusLabel(incident.status) }}</span>
+        <span class="text-muted small">{{ incident.applicationName }}</span>
+      </div>
+    </div>
+    <div *abpPermission="'SystemIntelligencePlatform.Incidents.Resolve'">
+      <button class="btn btn-success btn-sm" (click)="resolve()"
+              *ngIf="incident.status !== 3 && incident.status !== 4">
+        <i class="fa fa-check me-1"></i> Resolve
+      </button>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Main Info -->
+    <div class="col-md-8">
+      <!-- Metrics -->
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm text-center p-3">
+            <div class="text-muted small">Occurrences</div>
+            <div class="h4 mb-0 fw-bold">{{ incident.occurrenceCount }}</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm text-center p-3">
+            <div class="text-muted small">First Seen</div>
+            <div class="small">{{ incident.firstOccurrence | date:'medium' }}</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card border-0 shadow-sm text-center p-3">
+            <div class="text-muted small">Last Seen</div>
+            <div class="small">{{ incident.lastOccurrence | date:'medium' }}</div>
+          </div>
+        </div>
+        <div class="col-md-3" *ngIf="incident.sentimentScore !== null && incident.sentimentScore !== undefined">
+          <div class="card border-0 shadow-sm text-center p-3">
+            <div class="text-muted small">Sentiment</div>
+            <div class="h4 mb-0" [ngClass]="{
+              'text-success': incident.sentimentScore! > 0.6,
+              'text-warning': incident.sentimentScore! >= 0.3 && incident.sentimentScore! <= 0.6,
+              'text-danger': incident.sentimentScore! < 0.3
+            }">
+              {{ (incident.sentimentScore! * 100) | number:'1.0-0' }}%
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="card border-0 shadow-sm mb-4" *ngIf="incident.description">
+        <div class="card-header bg-white fw-bold">Description</div>
+        <div class="card-body">
+          <pre class="mb-0" style="white-space: pre-wrap; font-size: 0.85rem;">{{ incident.description }}</pre>
+        </div>
+      </div>
+
+      <!-- Comments -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-bold">Comments</div>
+        <div class="card-body">
+          <div *ngFor="let comment of incident.comments" class="border-bottom pb-3 mb-3">
+            <div class="d-flex justify-content-between">
+              <small class="text-muted">{{ comment.creationTime | date:'medium' }}</small>
+            </div>
+            <p class="mb-0 mt-1">{{ comment.content }}</p>
+          </div>
+
+          <div *ngIf="incident.comments.length === 0" class="text-muted text-center py-3">
+            No comments yet.
+          </div>
+
+          <!-- Add Comment -->
+          <div class="mt-3" *abpPermission="'SystemIntelligencePlatform.Incidents.Comment'">
+            <div class="input-group">
+              <textarea class="form-control" rows="2" placeholder="Add a comment..."
+                        [(ngModel)]="newComment"></textarea>
+              <button class="btn btn-primary" (click)="addComment()" [disabled]="!newComment.trim()">
+                <i class="fa fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Insights Sidebar -->
+    <div class="col-md-4">
+      <div class="card border-0 shadow-sm mb-4" *ngIf="incident.aiAnalyzedAt">
+        <div class="card-header bg-white fw-bold">
+          <i class="fa fa-brain me-1 text-primary"></i> AI Insights
+        </div>
+        <div class="card-body">
+          <small class="text-muted d-block mb-3">
+            Analyzed: {{ incident.aiAnalyzedAt | date:'medium' }}
+          </small>
+
+          <!-- Key Phrases -->
+          <div class="mb-3" *ngIf="getKeyPhrasesList().length > 0">
+            <h6 class="text-muted small text-uppercase">Key Phrases</h6>
+            <div class="d-flex flex-wrap gap-1">
+              <span *ngFor="let phrase of getKeyPhrasesList()"
+                    class="badge bg-light text-dark border">
+                {{ phrase }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Entities -->
+          <div class="mb-3" *ngIf="getEntitiesList().length > 0">
+            <h6 class="text-muted small text-uppercase">Recognized Entities</h6>
+            <div class="d-flex flex-wrap gap-1">
+              <span *ngFor="let entity of getEntitiesList()"
+                    class="badge bg-primary bg-opacity-10 text-primary border-primary border">
+                {{ entity }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Sentiment -->
+          <div *ngIf="incident.sentimentScore !== null && incident.sentimentScore !== undefined">
+            <h6 class="text-muted small text-uppercase">Sentiment Analysis</h6>
+            <div class="progress" style="height: 20px;">
+              <div class="progress-bar"
+                   [ngClass]="{
+                     'bg-success': incident.sentimentScore! > 0.6,
+                     'bg-warning': incident.sentimentScore! >= 0.3 && incident.sentimentScore! <= 0.6,
+                     'bg-danger': incident.sentimentScore! < 0.3
+                   }"
+                   [style.width.%]="incident.sentimentScore! * 100">
+                {{ (incident.sentimentScore! * 100) | number:'1.0-0' }}%
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm" *ngIf="!incident.aiAnalyzedAt">
+        <div class="card-body text-center text-muted py-4">
+          <i class="fa fa-robot fa-2x mb-2 d-block"></i>
+          AI analysis pending...
+        </div>
+      </div>
+
+      <!-- Incident Details -->
+      <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white fw-bold">Details</div>
+        <div class="card-body">
+          <dl class="row mb-0">
+            <dt class="col-5 text-muted">ID</dt>
+            <dd class="col-7 font-monospace small">{{ incident.id | slice:0:8 }}...</dd>
+
+            <dt class="col-5 text-muted">Hash</dt>
+            <dd class="col-7 font-monospace small">{{ incident.hashSignature | slice:0:12 }}...</dd>
+
+            <dt class="col-5 text-muted">Created</dt>
+            <dd class="col-7">{{ incident.creationTime | date:'short' }}</dd>
+
+            <dt class="col-5 text-muted" *ngIf="incident.resolvedAt">Resolved</dt>
+            <dd class="col-7" *ngIf="incident.resolvedAt">{{ incident.resolvedAt | date:'short' }}</dd>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using SystemIntelligencePlatform.Books;
+using SystemIntelligencePlatform.Incidents;
+using SystemIntelligencePlatform.LogEvents;
+using SystemIntelligencePlatform.MonitoredApplications;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.BlobStoring.Database.EntityFrameworkCore;
 using Volo.Abp.Data;
@@ -26,22 +29,13 @@ public class SystemIntelligencePlatformDbContext :
     ITenantManagementDbContext,
     IIdentityDbContext
 {
-    /* Add DbSet properties for your Aggregate Roots / Entities here. */
-
     public DbSet<Book> Books { get; set; }
+    public DbSet<MonitoredApplication> MonitoredApplications { get; set; }
+    public DbSet<LogEvent> LogEvents { get; set; }
+    public DbSet<Incident> Incidents { get; set; }
+    public DbSet<IncidentComment> IncidentComments { get; set; }
 
     #region Entities from the modules
-
-    /* Notice: We only implemented IIdentityProDbContext and ISaasDbContext
-     * and replaced them for this DbContext. This allows you to perform JOIN
-     * queries for the entities of these modules over the repositories easily. You
-     * typically don't need that for other modules. But, if you need, you can
-     * implement the DbContext interface of the needed module and use ReplaceDbContext
-     * attribute just like IIdentityProDbContext and ISaasDbContext.
-     *
-     * More info: Replacing a DbContext of a module ensures that the related module
-     * uses this DbContext on runtime. Otherwise, it will use its own DbContext class.
-     */
 
     // Identity
     public DbSet<IdentityUser> Users { get; set; }
@@ -62,14 +56,11 @@ public class SystemIntelligencePlatformDbContext :
     public SystemIntelligencePlatformDbContext(DbContextOptions<SystemIntelligencePlatformDbContext> options)
         : base(options)
     {
-
     }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-
-        /* Include modules to your migration db context */
 
         builder.ConfigurePermissionManagement();
         builder.ConfigureSettingManagement();
@@ -80,22 +71,80 @@ public class SystemIntelligencePlatformDbContext :
         builder.ConfigureOpenIddict();
         builder.ConfigureTenantManagement();
         builder.ConfigureBlobStoring();
-        
+
         builder.Entity<Book>(b =>
         {
             b.ToTable(SystemIntelligencePlatformConsts.DbTablePrefix + "Books",
                 SystemIntelligencePlatformConsts.DbSchema);
-            b.ConfigureByConvention(); //auto configure for the base class props
+            b.ConfigureByConvention();
             b.Property(x => x.Name).IsRequired().HasMaxLength(128);
         });
-        
-        /* Configure your own tables/entities inside here */
 
-        //builder.Entity<YourEntity>(b =>
-        //{
-        //    b.ToTable(SystemIntelligencePlatformConsts.DbTablePrefix + "YourEntities", SystemIntelligencePlatformConsts.DbSchema);
-        //    b.ConfigureByConvention(); //auto configure for the base class props
-        //    //...
-        //});
+        builder.Entity<MonitoredApplication>(b =>
+        {
+            b.ToTable(SystemIntelligencePlatformConsts.DbTablePrefix + "MonitoredApplications",
+                SystemIntelligencePlatformConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Name).IsRequired().HasMaxLength(MonitoredApplicationConsts.MaxNameLength);
+            b.Property(x => x.Description).HasMaxLength(MonitoredApplicationConsts.MaxDescriptionLength);
+            b.Property(x => x.Environment).HasMaxLength(MonitoredApplicationConsts.MaxEnvironmentLength);
+            b.Property(x => x.ApiKeyHash).IsRequired().HasMaxLength(MonitoredApplicationConsts.ApiKeyHashLength);
+
+            b.HasIndex(x => x.ApiKeyHash).IsUnique();
+            b.HasIndex(x => new { x.TenantId, x.Name }).IsUnique();
+            b.HasIndex(x => x.IsActive);
+        });
+
+        builder.Entity<LogEvent>(b =>
+        {
+            b.ToTable(SystemIntelligencePlatformConsts.DbTablePrefix + "LogEvents",
+                SystemIntelligencePlatformConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Message).IsRequired().HasMaxLength(LogEventConsts.MaxMessageLength);
+            b.Property(x => x.Source).HasMaxLength(LogEventConsts.MaxSourceLength);
+            b.Property(x => x.HashSignature).IsRequired().HasMaxLength(LogEventConsts.MaxHashSignatureLength);
+            b.Property(x => x.ExceptionType).HasMaxLength(LogEventConsts.MaxExceptionTypeLength);
+            b.Property(x => x.StackTrace).HasMaxLength(LogEventConsts.MaxStackTraceLength);
+            b.Property(x => x.CorrelationId).HasMaxLength(LogEventConsts.MaxCorrelationIdLength);
+
+            b.HasIndex(x => new { x.ApplicationId, x.HashSignature, x.Timestamp });
+            b.HasIndex(x => x.Timestamp);
+            b.HasIndex(x => x.IncidentId);
+            b.HasIndex(x => x.TenantId);
+        });
+
+        builder.Entity<Incident>(b =>
+        {
+            b.ToTable(SystemIntelligencePlatformConsts.DbTablePrefix + "Incidents",
+                SystemIntelligencePlatformConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Title).IsRequired().HasMaxLength(IncidentConsts.MaxTitleLength);
+            b.Property(x => x.Description).HasMaxLength(IncidentConsts.MaxDescriptionLength);
+            b.Property(x => x.HashSignature).IsRequired().HasMaxLength(IncidentConsts.MaxHashSignatureLength);
+            b.Property(x => x.KeyPhrases).HasMaxLength(IncidentConsts.MaxKeyPhrasesLength);
+            b.Property(x => x.Entities).HasMaxLength(IncidentConsts.MaxEntitiesLength);
+
+            b.HasIndex(x => new { x.ApplicationId, x.HashSignature }).IsUnique();
+            b.HasIndex(x => x.Status);
+            b.HasIndex(x => x.Severity);
+            b.HasIndex(x => x.LastOccurrence);
+            b.HasIndex(x => x.TenantId);
+
+            b.HasMany(x => x.Comments).WithOne().HasForeignKey(x => x.IncidentId);
+        });
+
+        builder.Entity<IncidentComment>(b =>
+        {
+            b.ToTable(SystemIntelligencePlatformConsts.DbTablePrefix + "IncidentComments",
+                SystemIntelligencePlatformConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.Content).IsRequired().HasMaxLength(2000);
+
+            b.HasIndex(x => x.IncidentId);
+        });
     }
 }

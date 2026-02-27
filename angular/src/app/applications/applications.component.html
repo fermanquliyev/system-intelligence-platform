@@ -1,0 +1,112 @@
+<div class="card">
+  <div class="card-header">
+    <div class="row">
+      <div class="col col-md-6">
+        <h5 class="card-title">Monitored Applications</h5>
+      </div>
+      <div class="col col-md-6 text-end">
+        <div class="text-end">
+          <button *abpPermission="'SystemIntelligencePlatform.Applications.Create'"
+                  class="btn btn-primary btn-sm" (click)="createApp()">
+            <i class="fa fa-plus me-1"></i> New Application
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <ngx-datatable [rows]="data.items" [count]="data.totalCount" [list]="list" default>
+      <ngx-datatable-column name="Name" prop="name"></ngx-datatable-column>
+      <ngx-datatable-column name="Environment" prop="environment"></ngx-datatable-column>
+      <ngx-datatable-column name="Status" prop="isActive">
+        <ng-template let-row="row" ngx-datatable-cell-template>
+          <span class="badge" [ngClass]="row.isActive ? 'bg-success' : 'bg-secondary'">
+            {{ row.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </ng-template>
+      </ngx-datatable-column>
+      <ngx-datatable-column name="Actions" [sortable]="false">
+        <ng-template let-row="row" ngx-datatable-cell-template>
+          <div class="btn-group btn-group-sm">
+            <button *abpPermission="'SystemIntelligencePlatform.Applications.Edit'"
+                    class="btn btn-outline-primary" (click)="editApp(row.id)">
+              <i class="fa fa-pencil"></i>
+            </button>
+            <button *abpPermission="'SystemIntelligencePlatform.Applications.RegenerateApiKey'"
+                    class="btn btn-outline-warning" (click)="regenerateApiKey(row.id)"
+                    title="Regenerate API Key">
+              <i class="fa fa-key"></i>
+            </button>
+            <button *abpPermission="'SystemIntelligencePlatform.Applications.Delete'"
+                    class="btn btn-outline-danger" (click)="delete(row.id)">
+              <i class="fa fa-trash"></i>
+            </button>
+          </div>
+        </ng-template>
+      </ngx-datatable-column>
+    </ngx-datatable>
+  </div>
+</div>
+
+<!-- Create/Edit Modal -->
+<abp-modal [(visible)]="isModalOpen" [busy]="false">
+  <ng-template #abpHeader>
+    <h3>{{ selectedApp?.id ? 'Edit Application' : 'New Application' }}</h3>
+  </ng-template>
+
+  <ng-template #abpBody>
+    <form [formGroup]="form" *ngIf="form">
+      <div class="mb-3">
+        <label class="form-label">Name *</label>
+        <input type="text" class="form-control" formControlName="name" autofocus />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Description</label>
+        <textarea class="form-control" formControlName="description" rows="3"></textarea>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Environment</label>
+        <select class="form-select" formControlName="environment">
+          <option value="">Select...</option>
+          <option value="Development">Development</option>
+          <option value="Staging">Staging</option>
+          <option value="Production">Production</option>
+        </select>
+      </div>
+      <div class="form-check" *ngIf="selectedApp?.id">
+        <input type="checkbox" class="form-check-input" formControlName="isActive" id="isActive" />
+        <label class="form-check-label" for="isActive">Active</label>
+      </div>
+    </form>
+  </ng-template>
+
+  <ng-template #abpFooter>
+    <button type="button" class="btn btn-secondary" abpClose>Cancel</button>
+    <button class="btn btn-primary" (click)="save()" [disabled]="form?.invalid">Save</button>
+  </ng-template>
+</abp-modal>
+
+<!-- API Key Modal -->
+<abp-modal [(visible)]="isApiKeyModalOpen" [busy]="false">
+  <ng-template #abpHeader>
+    <h3>API Key Generated</h3>
+  </ng-template>
+
+  <ng-template #abpBody>
+    <div class="alert alert-warning" *ngIf="apiKeyResult">
+      <i class="fa fa-exclamation-triangle me-2"></i>
+      <strong>Copy this API key now!</strong> It will not be shown again.
+    </div>
+    <div class="input-group" *ngIf="apiKeyResult">
+      <input type="text" class="form-control font-monospace" [value]="apiKeyResult.apiKey" readonly />
+      <button class="btn btn-outline-secondary" (click)="copyApiKey()">
+        <i class="fa fa-copy"></i>
+      </button>
+    </div>
+  </ng-template>
+
+  <ng-template #abpFooter>
+    <button type="button" class="btn btn-primary" abpClose>Done</button>
+  </ng-template>
+</abp-modal>

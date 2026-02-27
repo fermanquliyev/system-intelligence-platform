@@ -1,0 +1,116 @@
+<div class="container-fluid" *ngIf="dashboard">
+  <!-- Stats Cards -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase">Applications</div>
+          <div class="display-6 fw-bold text-primary">{{ dashboard.totalApplications }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase">Open Incidents</div>
+          <div class="display-6 fw-bold text-warning">{{ dashboard.totalOpenIncidents }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase">Critical</div>
+          <div class="display-6 fw-bold text-danger">{{ dashboard.totalCriticalIncidents }}</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <div class="text-muted small text-uppercase">Logs Today</div>
+          <div class="display-6 fw-bold text-info">{{ dashboard.totalLogsToday | number }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Severity Distribution -->
+    <div class="col-md-4 mb-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white fw-bold">Severity Distribution</div>
+        <div class="card-body">
+          <div *ngFor="let key of getSeverityKeys()" class="d-flex justify-content-between align-items-center mb-2">
+            <span class="badge" [ngClass]="getSeverityClass(key)">{{ key }}</span>
+            <span class="fw-bold">{{ dashboard.severityDistribution[key] }}</span>
+          </div>
+          <div *ngIf="getSeverityKeys().length === 0" class="text-muted text-center">
+            No active incidents
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Incident Trend -->
+    <div class="col-md-8 mb-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white fw-bold">Incident Trend (30 Days)</div>
+        <div class="card-body">
+          <div class="d-flex align-items-end" style="height: 200px; gap: 2px;" *ngIf="dashboard.incidentTrend.length > 0">
+            <div *ngFor="let item of dashboard.incidentTrend"
+                 class="bg-primary flex-fill rounded-top"
+                 [style.height.%]="item.count > 0 ? (item.count / getMaxTrend() * 100) : 2"
+                 [title]="(item.date | date:'shortDate') + ': ' + item.count">
+            </div>
+          </div>
+          <div *ngIf="dashboard.incidentTrend.length === 0" class="text-muted text-center py-5">
+            No trend data available
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Incidents -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-bold">Recent Incidents</div>
+        <div class="card-body p-0">
+          <table class="table table-hover mb-0" *ngIf="dashboard.recentIncidents.length > 0">
+            <thead class="table-light">
+              <tr>
+                <th>Title</th>
+                <th>Application</th>
+                <th>Severity</th>
+                <th>Count</th>
+                <th>Last Occurrence</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let incident of dashboard.recentIncidents">
+                <td>
+                  <a [routerLink]="['/incidents', incident.id]" class="text-decoration-none">
+                    {{ incident.title | slice:0:80 }}
+                  </a>
+                </td>
+                <td>{{ incident.applicationName }}</td>
+                <td>
+                  <span class="badge" [ngClass]="getSeverityClass(incident.severity.toString())">
+                    {{ incident.severity }}
+                  </span>
+                </td>
+                <td>{{ incident.occurrenceCount }}</td>
+                <td>{{ incident.lastOccurrence | date:'short' }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div *ngIf="dashboard.recentIncidents.length === 0" class="text-muted text-center py-4">
+            No active incidents
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

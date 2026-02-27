@@ -1,0 +1,94 @@
+<div class="card">
+  <div class="card-header">
+    <h5 class="card-title mb-3">Incidents</h5>
+
+    <!-- Search Bar -->
+    <div class="row mb-3" *abpPermission="'SystemIntelligencePlatform.Incidents.Search'">
+      <div class="col-md-8">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Search incidents (AI-powered)..."
+                 [(ngModel)]="searchQuery" (keyup.enter)="search()" />
+          <button class="btn btn-primary" (click)="search()">
+            <i class="fa fa-search"></i> Search
+          </button>
+          <button class="btn btn-outline-secondary" (click)="clearSearch()" *ngIf="searchResults">
+            Clear
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row">
+      <div class="col-md-3">
+        <select class="form-select form-select-sm" [(ngModel)]="filterSeverity" (change)="applyFilters()">
+          <option [ngValue]="null">All Severities</option>
+          <option *ngFor="let opt of severityOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <select class="form-select form-select-sm" [(ngModel)]="filterStatus" (change)="applyFilters()">
+          <option [ngValue]="null">All Statuses</option>
+          <option *ngFor="let opt of statusOptions" [ngValue]="opt.value">{{ opt.label }}</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button class="btn btn-outline-secondary btn-sm" (click)="clearFilters()">Reset</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body">
+    <!-- Search Results -->
+    <div *ngIf="searchResults" class="mb-4">
+      <h6>Search Results ({{ searchResults.totalCount }} found)</h6>
+      <div class="list-group">
+        <a *ngFor="let item of searchResults.items"
+           [routerLink]="['/incidents', item.id]"
+           class="list-group-item list-group-item-action">
+          <div class="d-flex justify-content-between">
+            <h6 class="mb-1">{{ item.title | slice:0:100 }}</h6>
+            <span class="badge" [ngClass]="getSeverityClass(item.severity === 'Critical' ? 3 : item.severity === 'High' ? 2 : item.severity === 'Medium' ? 1 : 0)">
+              {{ item.severity }}
+            </span>
+          </div>
+          <small class="text-muted">{{ item.applicationName }}</small>
+          <p class="mb-1 small" *ngIf="item.keyPhrases">
+            <strong>Key Phrases:</strong> {{ item.keyPhrases }}
+          </p>
+        </a>
+      </div>
+      <hr />
+    </div>
+
+    <!-- Incidents Table -->
+    <ngx-datatable [rows]="data.items" [count]="data.totalCount" [list]="list" default>
+      <ngx-datatable-column name="Title" prop="title" [width]="300">
+        <ng-template let-row="row" ngx-datatable-cell-template>
+          <a [routerLink]="['/incidents', row.id]" class="text-decoration-none">
+            {{ row.title | slice:0:80 }}
+          </a>
+        </ng-template>
+      </ngx-datatable-column>
+      <ngx-datatable-column name="Application" prop="applicationName"></ngx-datatable-column>
+      <ngx-datatable-column name="Severity" prop="severity" [width]="100">
+        <ng-template let-row="row" ngx-datatable-cell-template>
+          <span class="badge" [ngClass]="getSeverityClass(row.severity)">
+            {{ getSeverityLabel(row.severity) }}
+          </span>
+        </ng-template>
+      </ngx-datatable-column>
+      <ngx-datatable-column name="Status" prop="status" [width]="120">
+        <ng-template let-row="row" ngx-datatable-cell-template>
+          {{ getStatusLabel(row.status) }}
+        </ng-template>
+      </ngx-datatable-column>
+      <ngx-datatable-column name="Count" prop="occurrenceCount" [width]="80"></ngx-datatable-column>
+      <ngx-datatable-column name="Last Seen" prop="lastOccurrence" [width]="150">
+        <ng-template let-row="row" ngx-datatable-cell-template>
+          {{ row.lastOccurrence | date:'short' }}
+        </ng-template>
+      </ngx-datatable-column>
+    </ngx-datatable>
+  </div>
+</div>

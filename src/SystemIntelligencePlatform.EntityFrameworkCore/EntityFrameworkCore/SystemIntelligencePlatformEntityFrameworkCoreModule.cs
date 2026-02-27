@@ -42,9 +42,10 @@ public class SystemIntelligencePlatformEntityFrameworkCoreModule : AbpModule
     {
         context.Services.AddAbpDbContext<SystemIntelligencePlatformDbContext>(options =>
         {
-                /* Remove "includeAllEntities: true" to create
-                 * default repositories only for aggregate roots */
             options.AddDefaultRepositories(includeAllEntities: true);
+            options.AddRepository<MonitoredApplications.MonitoredApplication, Repositories.EfCoreMonitoredApplicationRepository>();
+            options.AddRepository<LogEvents.LogEvent, Repositories.EfCoreLogEventRepository>();
+            options.AddRepository<Incidents.Incident, Repositories.EfCoreIncidentRepository>();
         });
 
         if (AbpStudioAnalyzeHelper.IsInAnalyzeMode)
