@@ -1,0 +1,10 @@
+using SystemIntelligencePlatform.Samples;
+using Xunit;
+
+namespace SystemIntelligencePlatform.EntityFrameworkCore.Applications;
+
+[Collection(SystemIntelligencePlatformTestConsts.CollectionDefinitionName)]
+public class EfCoreSampleAppServiceTests : SampleAppServiceTests<SystemIntelligencePlatformEntityFrameworkCoreTestModule>
+{
+
+}

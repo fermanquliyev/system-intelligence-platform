@@ -1,0 +1,10 @@
+﻿using SystemIntelligencePlatform.Books;
+using Xunit;
+
+namespace SystemIntelligencePlatform.EntityFrameworkCore.Applications.Books;
+
+[Collection(SystemIntelligencePlatformTestConsts.CollectionDefinitionName)]
+public class EfCoreBookAppService_Tests : BookAppService_Tests<SystemIntelligencePlatformEntityFrameworkCoreTestModule>
+{
+
+}

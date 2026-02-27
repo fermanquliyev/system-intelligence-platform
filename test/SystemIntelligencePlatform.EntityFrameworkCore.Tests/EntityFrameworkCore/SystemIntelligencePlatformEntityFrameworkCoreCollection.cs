@@ -1,0 +1,9 @@
+﻿using Xunit;
+
+namespace SystemIntelligencePlatform.EntityFrameworkCore;
+
+[CollectionDefinition(SystemIntelligencePlatformTestConsts.CollectionDefinitionName)]
+public class SystemIntelligencePlatformEntityFrameworkCoreCollection : ICollectionFixture<SystemIntelligencePlatformEntityFrameworkCoreFixture>
+{
+
+}

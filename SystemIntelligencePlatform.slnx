@@ -1,0 +1,23 @@
+<Solution>
+    <Configurations>
+        <Platform Name="Any CPU" />
+    </Configurations>
+    <Folder Name="/src/">
+        <Project Path="src/SystemIntelligencePlatform.Domain/SystemIntelligencePlatform.Domain.csproj" />
+        <Project Path="src/SystemIntelligencePlatform.Application/SystemIntelligencePlatform.Application.csproj" />
+        <Project Path="src/SystemIntelligencePlatform.EntityFrameworkCore/SystemIntelligencePlatform.EntityFrameworkCore.csproj" />
+        <Project Path="src/SystemIntelligencePlatform.Domain.Shared/SystemIntelligencePlatform.Domain.Shared.csproj" />
+        <Project Path="src/SystemIntelligencePlatform.Application.Contracts/SystemIntelligencePlatform.Application.Contracts.csproj" />
+        <Project Path="src/SystemIntelligencePlatform.HttpApi/SystemIntelligencePlatform.HttpApi.csproj" />
+        <Project Path="src/SystemIntelligencePlatform.HttpApi.Client/SystemIntelligencePlatform.HttpApi.Client.csproj" />
+        <Project Path="src/SystemIntelligencePlatform.DbMigrator/SystemIntelligencePlatform.DbMigrator.csproj" />
+        <Project Path="src/SystemIntelligencePlatform.HttpApi.Host/SystemIntelligencePlatform.HttpApi.Host.csproj" />
+    </Folder>
+    <Folder Name="/test/">
+        <Project Path="test/SystemIntelligencePlatform.Application.Tests/SystemIntelligencePlatform.Application.Tests.csproj" />
+        <Project Path="test/SystemIntelligencePlatform.EntityFrameworkCore.Tests/SystemIntelligencePlatform.EntityFrameworkCore.Tests.csproj" />
+        <Project Path="test/SystemIntelligencePlatform.TestBase/SystemIntelligencePlatform.TestBase.csproj" />
+        <Project Path="test/SystemIntelligencePlatform.Domain.Tests/SystemIntelligencePlatform.Domain.Tests.csproj" />
+        <Project Path="test/SystemIntelligencePlatform.HttpApi.Client.ConsoleTestApp/SystemIntelligencePlatform.HttpApi.Client.ConsoleTestApp.csproj" />
+    </Folder>
+</Solution>

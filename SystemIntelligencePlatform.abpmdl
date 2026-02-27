@@ -1,0 +1,109 @@
+{
+  "template": "app",
+  "imports": {
+    "Volo.Abp.LeptonXLiteTheme": {
+      "version": "5.1.0",
+      "isInstalled": true,
+      "creationTime": "02/27/2026 22:17:28 +00:00"
+    },
+    "Volo.Abp.Account": {
+      "version": "10.1.0",
+      "isInstalled": true,
+      "creationTime": "02/27/2026 22:17:28 +00:00"
+    },
+    "Volo.Abp.OpenIddict": {
+      "version": "10.1.0",
+      "isInstalled": true,
+      "creationTime": "02/27/2026 22:17:28 +00:00"
+    },
+    "Volo.Abp.Identity": {
+      "version": "10.1.0",
+      "isInstalled": true,
+      "creationTime": "02/27/2026 22:17:28 +00:00"
+    },
+    "Volo.Abp.TenantManagement": {
+      "version": "10.1.0",
+      "isInstalled": true,
+      "creationTime": "02/27/2026 22:17:28 +00:00"
+    },
+    "Volo.Abp.SettingManagement": {
+      "version": "10.1.0",
+      "isInstalled": true,
+      "creationTime": "02/27/2026 22:17:28 +00:00"
+    },
+    "Volo.Abp.PermissionManagement": {
+      "version": "10.1.0",
+      "isInstalled": true,
+      "creationTime": "02/27/2026 22:17:28 +00:00"
+    },
+    "Volo.Abp.FeatureManagement": {
+      "version": "10.1.0",
+      "isInstalled": true,
+      "creationTime": "02/27/2026 22:17:28 +00:00"
+    }
+  },
+  "folders": {
+    "items": {
+      "src": {},
+      "test": {}
+    }
+  },
+  "packages": {
+    "SystemIntelligencePlatform.Application": {
+      "path": "src/SystemIntelligencePlatform.Application/SystemIntelligencePlatform.Application.abppkg",
+      "folder": "src"
+    },
+    "SystemIntelligencePlatform.Application.Tests": {
+      "path": "test/SystemIntelligencePlatform.Application.Tests/SystemIntelligencePlatform.Application.Tests.abppkg",
+      "folder": "test"
+    },
+    "SystemIntelligencePlatform.Domain.Shared": {
+      "path": "src/SystemIntelligencePlatform.Domain.Shared/SystemIntelligencePlatform.Domain.Shared.abppkg",
+      "folder": "src"
+    },
+    "SystemIntelligencePlatform.Application.Contracts": {
+      "path": "src/SystemIntelligencePlatform.Application.Contracts/SystemIntelligencePlatform.Application.Contracts.abppkg",
+      "folder": "src"
+    },
+    "SystemIntelligencePlatform.HttpApi": {
+      "path": "src/SystemIntelligencePlatform.HttpApi/SystemIntelligencePlatform.HttpApi.abppkg",
+      "folder": "src"
+    },
+    "SystemIntelligencePlatform.HttpApi.Client": {
+      "path": "src/SystemIntelligencePlatform.HttpApi.Client/SystemIntelligencePlatform.HttpApi.Client.abppkg",
+      "folder": "src"
+    },
+    "SystemIntelligencePlatform.EntityFrameworkCore.Tests": {
+      "path": "test/SystemIntelligencePlatform.EntityFrameworkCore.Tests/SystemIntelligencePlatform.EntityFrameworkCore.Tests.abppkg",
+      "folder": "test"
+    },
+    "SystemIntelligencePlatform.EntityFrameworkCore": {
+      "path": "src/SystemIntelligencePlatform.EntityFrameworkCore/SystemIntelligencePlatform.EntityFrameworkCore.abppkg",
+      "folder": "src"
+    },
+    "SystemIntelligencePlatform.TestBase": {
+      "path": "test/SystemIntelligencePlatform.TestBase/SystemIntelligencePlatform.TestBase.abppkg",
+      "folder": "test"
+    },
+    "SystemIntelligencePlatform.Domain.Tests": {
+      "path": "test/SystemIntelligencePlatform.Domain.Tests/SystemIntelligencePlatform.Domain.Tests.abppkg",
+      "folder": "test"
+    },
+    "SystemIntelligencePlatform.HttpApi.Client.ConsoleTestApp": {
+      "path": "test/SystemIntelligencePlatform.HttpApi.Client.ConsoleTestApp/SystemIntelligencePlatform.HttpApi.Client.ConsoleTestApp.abppkg",
+      "folder": "test"
+    },
+    "SystemIntelligencePlatform.DbMigrator": {
+      "path": "src/SystemIntelligencePlatform.DbMigrator/SystemIntelligencePlatform.DbMigrator.abppkg",
+      "folder": "src"
+    },
+    "SystemIntelligencePlatform.HttpApi.Host": {
+      "path": "src/SystemIntelligencePlatform.HttpApi.Host/SystemIntelligencePlatform.HttpApi.Host.abppkg",
+      "folder": "src"
+    },
+    "SystemIntelligencePlatform.Domain": {
+      "path": "src/SystemIntelligencePlatform.Domain/SystemIntelligencePlatform.Domain.abppkg",
+      "folder": "src"
+    }
+  }
+}

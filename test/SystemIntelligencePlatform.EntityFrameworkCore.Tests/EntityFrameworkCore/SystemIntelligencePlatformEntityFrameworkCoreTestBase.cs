@@ -1,0 +1,8 @@
+﻿using Volo.Abp;
+
+namespace SystemIntelligencePlatform.EntityFrameworkCore;
+
+public abstract class SystemIntelligencePlatformEntityFrameworkCoreTestBase : SystemIntelligencePlatformTestBase<SystemIntelligencePlatformEntityFrameworkCoreTestModule>
+{
+
+}

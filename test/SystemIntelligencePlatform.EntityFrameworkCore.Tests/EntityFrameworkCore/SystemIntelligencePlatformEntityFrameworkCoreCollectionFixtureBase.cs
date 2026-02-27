@@ -1,0 +1,9 @@
+﻿using SystemIntelligencePlatform.EntityFrameworkCore;
+using Xunit;
+
+namespace SystemIntelligencePlatform.EntityFrameworkCore;
+
+public class SystemIntelligencePlatformEntityFrameworkCoreCollectionFixtureBase : ICollectionFixture<SystemIntelligencePlatformEntityFrameworkCoreFixture>
+{
+
+}
