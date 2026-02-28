@@ -129,11 +129,15 @@ public class IncidentProcessorFunction_Tests
             DateTime.UtcNow);
 
         // Act - First AI analysis
-        var firstAnalysisTime = DateTime.UtcNow;
-        incident.EnrichWithAiAnalysis(
-            sentimentScore: 0.75,
-            keyPhrases: "error, timeout",
-            entities: "Server:Technology");
+        incident.EnrichWithAiAnalysis(new AiAnalysisResult
+        {
+            SentimentScore = 0.75,
+            KeyPhrases = new System.Collections.Generic.List<string> { "error", "timeout" },
+            Entities = new System.Collections.Generic.List<string> { "Server:Technology" },
+            RootCauseSummary = "Timeout detected",
+            SuggestedFix = "Increase timeout",
+            ConfidenceScore = 75
+        });
 
         var firstAiAnalyzedAt = incident.AiAnalyzedAt;
 
@@ -141,21 +145,27 @@ public class IncidentProcessorFunction_Tests
         incident.SentimentScore.ShouldBe(0.75);
         incident.KeyPhrases.ShouldBe("error, timeout");
         incident.Entities.ShouldBe("Server:Technology");
+        incident.RootCauseSummary.ShouldBe("Timeout detected");
         incident.AiAnalyzedAt.ShouldNotBeNull();
 
         // Act - Second AI analysis (re-runnable)
-        System.Threading.Thread.Sleep(10); // Small delay to ensure timestamp difference
-        incident.EnrichWithAiAnalysis(
-            sentimentScore: 0.85,
-            keyPhrases: "error, timeout, connection",
-            entities: "Server:Technology, Database:Technology");
+        System.Threading.Thread.Sleep(10);
+        incident.EnrichWithAiAnalysis(new AiAnalysisResult
+        {
+            SentimentScore = 0.85,
+            KeyPhrases = new System.Collections.Generic.List<string> { "error", "timeout", "connection" },
+            Entities = new System.Collections.Generic.List<string> { "Server:Technology", "Database:Technology" },
+            RootCauseSummary = "Connection timeout",
+            SuggestedFix = "Check connectivity",
+            ConfidenceScore = 85
+        });
 
         // Assert - Second analysis updates the timestamp
         incident.SentimentScore.ShouldBe(0.85);
         incident.KeyPhrases.ShouldBe("error, timeout, connection");
         incident.Entities.ShouldBe("Server:Technology, Database:Technology");
         incident.AiAnalyzedAt.ShouldNotBeNull();
-        incident.AiAnalyzedAt.ShouldNotBe(firstAiAnalyzedAt); // Timestamp should be updated
+        incident.AiAnalyzedAt.ShouldNotBe(firstAiAnalyzedAt);
     }
 
     /// <summary>

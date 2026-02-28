@@ -4,7 +4,8 @@ using Volo.Abp.Application.Services;
 namespace SystemIntelligencePlatform.CostEstimation;
 
 /// <summary>
-/// Estimates monthly Azure costs based on expected log volume.
+/// [MVP: Disabled] Internal cost estimation tool. Not exposed to customers.
+/// Retained for internal capacity planning.
 ///
 /// Pricing assumptions (pay-as-you-go, free tiers where applicable):
 /// - Service Bus Basic: $0.05 per million operations

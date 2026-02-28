@@ -22,6 +22,10 @@ public class Incident : FullAuditedAggregateRoot<Guid>, IMultiTenant
     public double? SentimentScore { get; set; }
     public string? KeyPhrases { get; set; }
     public string? Entities { get; set; }
+    public string? RootCauseSummary { get; set; }
+    public string? SuggestedFix { get; set; }
+    public string? SeverityJustification { get; set; }
+    public int? ConfidenceScore { get; set; }
     public DateTime? AiAnalyzedAt { get; set; }
 
     public DateTime? ResolvedAt { get; set; }
@@ -66,11 +70,15 @@ public class Incident : FullAuditedAggregateRoot<Guid>, IMultiTenant
         ResolvedByUserId = userId;
     }
 
-    public void EnrichWithAiAnalysis(double? sentimentScore, string? keyPhrases, string? entities)
+    public void EnrichWithAiAnalysis(AiAnalysisResult result)
     {
-        SentimentScore = sentimentScore;
-        KeyPhrases = keyPhrases;
-        Entities = entities;
+        SentimentScore = result.SentimentScore;
+        KeyPhrases = result.KeyPhrases.Count > 0 ? string.Join(", ", result.KeyPhrases) : null;
+        Entities = result.Entities.Count > 0 ? string.Join(", ", result.Entities) : null;
+        RootCauseSummary = result.RootCauseSummary;
+        SuggestedFix = result.SuggestedFix;
+        SeverityJustification = result.SeverityJustification;
+        ConfidenceScore = result.ConfidenceScore;
         AiAnalyzedAt = DateTime.UtcNow;
     }
 

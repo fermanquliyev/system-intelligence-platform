@@ -212,10 +212,17 @@ public class IncidentProcessorFunction
                     .Take(20)
                     .ToList();
 
-                incident.EnrichWithAiAnalysis(
-                    avgSentiment,
-                    string.Join(", ", keyPhrases),
-                    string.Join(", ", entities));
+                var aiResult = new AiAnalysisResult
+                {
+                    SentimentScore = avgSentiment,
+                    KeyPhrases = keyPhrases,
+                    Entities = entities,
+                    RootCauseSummary = BuildRootCauseSummary(keyPhrases, entities, recentMessages),
+                    SuggestedFix = BuildSuggestedFix(keyPhrases),
+                    SeverityJustification = $"Detected {incident.OccurrenceCount} occurrences with {incident.Severity} severity",
+                    ConfidenceScore = Math.Clamp((int)(avgSentiment * 100), 0, 100)
+                };
+                incident.EnrichWithAiAnalysis(aiResult);
 
                 _logger.LogInformation("AI enrichment completed for Incident {IncidentId}", incident.Id);
             }
@@ -281,5 +288,42 @@ public class IncidentProcessorFunction
         if (message.Length <= IncidentConsts.MaxTitleLength)
             return message;
         return message[..IncidentConsts.MaxTitleLength];
+    }
+
+    private static string BuildRootCauseSummary(
+        List<string> keyPhrases, List<string> entities, List<string> messages)
+    {
+        var phrases = keyPhrases.Count > 0
+            ? $"Key indicators: {string.Join(", ", keyPhrases.Take(5))}"
+            : "No key phrases identified";
+
+        var entityInfo = entities.Count > 0
+            ? $"Related entities: {string.Join(", ", entities.Take(3))}"
+            : "";
+
+        var sample = messages.Count > 0
+            ? $"Sample: \"{messages[0][..Math.Min(messages[0].Length, 100)]}\""
+            : "";
+
+        return string.Join(". ", new[] { phrases, entityInfo, sample }
+            .Where(s => !string.IsNullOrEmpty(s)));
+    }
+
+    private static string BuildSuggestedFix(List<string> keyPhrases)
+    {
+        var lower = keyPhrases.Select(k => k.ToLowerInvariant()).ToList();
+
+        if (lower.Any(k => k.Contains("timeout")))
+            return "Consider increasing timeout values or checking network connectivity.";
+        if (lower.Any(k => k.Contains("memory") || k.Contains("out of memory")))
+            return "Review memory allocation and consider scaling up the service.";
+        if (lower.Any(k => k.Contains("connection") || k.Contains("refused")))
+            return "Verify database/service connection strings and endpoint availability.";
+        if (lower.Any(k => k.Contains("null") || k.Contains("reference")))
+            return "Add null checks or validate input data before processing.";
+        if (lower.Any(k => k.Contains("authentication") || k.Contains("unauthorized")))
+            return "Verify credentials and token expiration settings.";
+
+        return "Review the error logs and stack traces for detailed analysis.";
     }
 }

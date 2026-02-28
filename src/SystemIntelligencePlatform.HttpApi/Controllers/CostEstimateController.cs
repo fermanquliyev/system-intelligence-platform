@@ -4,8 +4,12 @@ using SystemIntelligencePlatform.CostEstimation;
 
 namespace SystemIntelligencePlatform.Controllers;
 
+/// <summary>
+/// [MVP: Hidden] Internal cost estimation endpoint. Not shown in API docs.
+/// </summary>
 [Route("api/app/cost-estimate")]
 [Authorize]
+[ApiExplorerSettings(IgnoreApi = true)]
 public class CostEstimateController : SystemIntelligencePlatformController
 {
     private readonly ICostEstimatorAppService _costEstimator;

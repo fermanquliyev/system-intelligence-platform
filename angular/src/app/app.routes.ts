@@ -43,4 +43,9 @@ export const APP_ROUTES: Routes = [
     loadComponent: () => import('./incidents/incident-detail.component').then(c => c.IncidentDetailComponent),
     canActivate: [authGuard, permissionGuard],
   },
+  {
+    path: 'subscription',
+    loadComponent: () => import('./subscription/subscription.component').then(c => c.SubscriptionComponent),
+    canActivate: [authGuard],
+  },
 ];

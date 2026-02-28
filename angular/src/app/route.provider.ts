@@ -41,5 +41,12 @@ function configureRoutes() {
         layout: eLayoutType.application,
         requiredPolicy: 'SystemIntelligencePlatform.Incidents',
       },
+      {
+        path: '/subscription',
+        name: '::Menu:Subscription',
+        iconClass: 'fas fa-credit-card',
+        order: 5,
+        layout: eLayoutType.application,
+      },
   ]);
 }

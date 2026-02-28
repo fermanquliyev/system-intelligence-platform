@@ -17,4 +17,8 @@ public class AiAnalysisResult
     public double? SentimentScore { get; set; }
     public List<string> KeyPhrases { get; set; } = new();
     public List<string> Entities { get; set; } = new();
+    public string? RootCauseSummary { get; set; }
+    public string? SuggestedFix { get; set; }
+    public string? SeverityJustification { get; set; }
+    public int ConfidenceScore { get; set; }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using SystemIntelligencePlatform.Incidents;
 using Shouldly;
 using Xunit;
@@ -114,12 +115,25 @@ public class IncidentEntity_Tests
     public void EnrichWithAiAnalysis_ShouldSetAllFields()
     {
         var incident = CreateIncident();
+        var result = new AiAnalysisResult
+        {
+            SentimentScore = 0.75,
+            KeyPhrases = new List<string> { "error", "timeout" },
+            Entities = new List<string> { "Server:Technology" },
+            RootCauseSummary = "Connection timeout detected",
+            SuggestedFix = "Increase timeout values",
+            SeverityJustification = "High frequency of errors",
+            ConfidenceScore = 85
+        };
 
-        incident.EnrichWithAiAnalysis(0.75, "error, timeout", "Server:Technology");
+        incident.EnrichWithAiAnalysis(result);
 
         incident.SentimentScore.ShouldBe(0.75);
         incident.KeyPhrases.ShouldBe("error, timeout");
         incident.Entities.ShouldBe("Server:Technology");
+        incident.RootCauseSummary.ShouldBe("Connection timeout detected");
+        incident.SuggestedFix.ShouldBe("Increase timeout values");
+        incident.ConfidenceScore.ShouldBe(85);
         incident.AiAnalyzedAt.ShouldNotBeNull();
     }
 }

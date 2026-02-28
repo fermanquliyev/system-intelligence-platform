@@ -14,7 +14,11 @@ public class FakeIncidentAiAnalyzer : IIncidentAiAnalyzer, ITransientDependency
         {
             SentimentScore = 0.5,
             KeyPhrases = new List<string> { "test", "error" },
-            Entities = new List<string> { "Server:Technology" }
+            Entities = new List<string> { "Server:Technology" },
+            RootCauseSummary = "Test root cause analysis",
+            SuggestedFix = "Review test configuration",
+            SeverityJustification = "Test severity justification",
+            ConfidenceScore = 75
         });
     }
 }

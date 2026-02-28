@@ -19,6 +19,10 @@ public class IncidentDto : FullAuditedEntityDto<Guid>
     public double? SentimentScore { get; set; }
     public string? KeyPhrases { get; set; }
     public string? Entities { get; set; }
+    public string? RootCauseSummary { get; set; }
+    public string? SuggestedFix { get; set; }
+    public string? SeverityJustification { get; set; }
+    public int? ConfidenceScore { get; set; }
     public DateTime? AiAnalyzedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }
     public List<IncidentCommentDto> Comments { get; set; } = new();
