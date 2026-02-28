@@ -328,6 +328,7 @@ public class SystemIntelligencePlatformHttpApiHostModule : AbpModule
         }
 
         app.UseRouting();
+        app.UseMiddleware<SystemIntelligencePlatform.RateLimiting.RateLimitingMiddleware>();
         app.MapAbpStaticAssets();
         app.UseAbpStudioLink();
         app.UseAbpSecurityHeaders();

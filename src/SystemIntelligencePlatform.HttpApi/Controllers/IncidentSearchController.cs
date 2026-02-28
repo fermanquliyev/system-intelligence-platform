@@ -10,9 +10,9 @@ namespace SystemIntelligencePlatform.Controllers;
 [Authorize(SystemIntelligencePlatformPermissions.Incidents.Search)]
 public class IncidentSearchController : SystemIntelligencePlatformController
 {
-    private readonly IncidentAppService _incidentAppService;
+    private readonly IIncidentAppService _incidentAppService;
 
-    public IncidentSearchController(IncidentAppService incidentAppService)
+    public IncidentSearchController(IIncidentAppService incidentAppService)
     {
         _incidentAppService = incidentAppService;
     }

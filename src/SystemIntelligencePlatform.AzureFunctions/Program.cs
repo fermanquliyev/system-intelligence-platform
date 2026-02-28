@@ -1,31 +1,31 @@
+using System;
 using Azure;
 using Azure.AI.TextAnalytics;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using SystemIntelligencePlatform.EntityFrameworkCore;
-using Volo.Abp;
-using Volo.Abp.Autofac;
-using Volo.Abp.EntityFrameworkCore;
-using Volo.Abp.Modularity;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
     .ConfigureServices((context, services) =>
     {
         services.AddApplicationInsightsTelemetryWorkerService();
-        services.ConfigureFunctionsApplicationInsights();
 
         var config = context.Configuration;
 
-        // EF Core for direct DB access in the function
-        services.AddAbpDbContext<SystemIntelligencePlatformDbContext>(options =>
+        var connectionString = config.GetConnectionString("Default");
+        if (!string.IsNullOrEmpty(connectionString))
         {
-            options.AddDefaultRepositories(includeAllEntities: true);
-        });
+            services.AddDbContext<SystemIntelligencePlatformDbContext>(options =>
+            {
+                options.UseSqlServer(connectionString);
+            });
+        }
 
         // Azure Language
         var langEndpoint = config["AzureLanguage:Endpoint"];

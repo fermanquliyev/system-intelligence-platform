@@ -13,9 +13,9 @@ namespace SystemIntelligencePlatform.Controllers;
 [AllowAnonymous]
 public class LogIngestionController : SystemIntelligencePlatformController
 {
-    private readonly LogIngestionAppService _logIngestionAppService;
+    private readonly ILogIngestionAppService _logIngestionAppService;
 
-    public LogIngestionController(LogIngestionAppService logIngestionAppService)
+    public LogIngestionController(ILogIngestionAppService logIngestionAppService)
     {
         _logIngestionAppService = logIngestionAppService;
     }

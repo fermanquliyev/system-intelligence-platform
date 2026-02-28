@@ -58,7 +58,7 @@ public class AzureLanguageService : IIncidentAiAnalyzer, ITransientDependency
             var entityResults = await _client.RecognizeEntitiesBatchAsync(messages);
             result.Entities = entityResults.Value
                 .Where(r => !r.HasError)
-                .SelectMany(r => r.Select(e => $"{e.Text}:{e.Category}"))
+                .SelectMany(r => r.Entities.Select(e => $"{e.Text}:{e.Category}"))
                 .Distinct()
                 .Take(20)
                 .ToList();

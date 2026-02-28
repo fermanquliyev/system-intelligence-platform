@@ -34,13 +34,16 @@ public class AzureServiceBusLogEventPublisher : ILogEventPublisher, ISingletonDe
             {
                 ContentType = "application/json",
                 Subject = message.ApplicationId.ToString(),
-                MessageId = Guid.NewGuid().ToString()
+                MessageId = Guid.NewGuid().ToString(),
+                CorrelationId = message.CorrelationId ?? Guid.NewGuid().ToString()
             };
 
             if (message.TenantId.HasValue)
             {
                 sbMessage.ApplicationProperties["TenantId"] = message.TenantId.Value.ToString();
             }
+
+            sbMessage.ApplicationProperties["ApplicationId"] = message.ApplicationId.ToString();
 
             await _sender.SendMessageAsync(sbMessage);
         }

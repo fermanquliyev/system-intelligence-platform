@@ -13,7 +13,7 @@ namespace SystemIntelligencePlatform.LogIngestion;
 /// Lightweight ingestion endpoint: validates the API key, publishes to Service Bus, returns immediately.
 /// All heavy processing is done asynchronously via Azure Functions.
 /// </summary>
-public class LogIngestionAppService : ApplicationService
+public class LogIngestionAppService : ApplicationService, ILogIngestionAppService
 {
     private readonly IMonitoredApplicationRepository _applicationRepository;
     private readonly ILogEventPublisher _logEventPublisher;

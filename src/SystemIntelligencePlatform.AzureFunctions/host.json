@@ -20,7 +20,15 @@
       "prefetchCount": 10,
       "messageHandlerOptions": {
         "maxConcurrentCalls": 16,
-        "autoComplete": true
+        "autoComplete": true,
+        "maxAutoLockRenewalDuration": "00:05:00"
+      },
+      "maxDeliveryCount": 10,
+      "retryOptions": {
+        "mode": "Exponential",
+        "maxRetries": 5,
+        "delay": "00:00:02",
+        "maxDelay": "00:01:00"
       }
     }
   }

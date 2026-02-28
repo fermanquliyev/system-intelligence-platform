@@ -567,6 +567,67 @@ Get dashboard statistics (incident counts, recent activity).
 
 Full-text search incidents using Azure AI Search.
 
+## Testing Strategy
+
+This platform uses a layered testing approach that mirrors the ABP architecture, ensuring correctness at every boundary in the distributed system.
+
+### Domain Logic Isolation (Domain.Tests)
+
+Domain tests validate pure business logic with **zero infrastructure dependencies**. The `AnomalyDetectionService`, `Incident` entity escalation rules, and severity calculations are tested as pure unit tests. This is critical because anomaly detection is the core decision-making engine — a false positive creates noise, a false negative misses outages.
+
+**What's tested:**
+- Spike detection (5-min window vs 7-day hourly baseline)
+- Burst detection (1-hour sustained rate)
+- Immediate Critical log level trigger
+- No false positives when metrics are within normal range
+- New signature fallback thresholds (no baseline exists)
+- Incident auto-escalation at 10/50/100 occurrences
+- AI enrichment field population
+
+### Application Service Tests (Application.Tests)
+
+Application tests verify service-layer orchestration: permission enforcement, DTO mapping, and integration between domain services. Abstract test classes allow the same tests to run against different backing stores.
+
+**What's tested:**
+- Dead-letter processing creates `FailedLogEvent` records with CorrelationId
+- Rate limiting: sliding window allows under limit, rejects over limit with 429 + Retry-After
+- Tenant isolation in rate limiting (Tenant A doesn't affect Tenant B)
+- Cost estimator calculations at 1M and 10M logs/day scales
+- Observability: CorrelationId, TenantId, ApplicationId propagation through the message pipeline
+
+### EF Core Integration Tests (EntityFrameworkCore.Tests)
+
+EF Core tests run against an in-memory SQLite database to verify repository implementations, query correctness, and data integrity. These catch issues that unit tests cannot: incorrect LINQ translations, missing indexes (via query behavior), and cascade delete problems.
+
+**What's tested:**
+- BulkInsert correctness (100 events in one call)
+- TenantId filtering (multi-tenant isolation at the query level)
+- HashSignature + time-window queries (the foundation of anomaly detection)
+- Log archival: old events deleted, incidents preserved
+- Incident repository: active-only filtering, severity distribution, trend aggregation
+- AsNoTracking usage verification for read-heavy paths
+
+### Function Processing Tests (Domain.Tests/AzureFunctions)
+
+The `IncidentProcessorFunction` is the most critical path in the system — it runs asynchronously inside Azure Functions with no user-facing feedback loop. Tests validate the domain logic the function relies on:
+
+- Anomaly → new incident creation
+- Subsequent events → existing incident update (not duplicate)
+- Below-threshold events → no incident (no noise)
+- AI enrichment idempotency
+
+### Why This Matters for Distributed Systems
+
+In a system processing 1M+ logs/day across multiple tenants:
+
+1. **Anomaly detection correctness** directly impacts on-call engineers. False positives cause alert fatigue; false negatives cause missed outages.
+2. **Tenant isolation** is a legal and security requirement. A query that leaks data across tenants is a breach.
+3. **Dead-letter handling** prevents silent data loss. Without testing, failed messages disappear into a void.
+4. **Rate limiting** protects the entire platform from a single tenant's traffic spike.
+5. **Archival correctness** ensures incident history survives even after raw logs are moved to cold storage.
+
+All tests are deterministic, avoid real Azure calls, and use mocks/fakes for external services.
+
 ## License
 
 MIT License - see LICENSE file for details.

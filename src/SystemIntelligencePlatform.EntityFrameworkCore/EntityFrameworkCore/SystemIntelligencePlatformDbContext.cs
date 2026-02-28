@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
-using SystemIntelligencePlatform.Books;
+using SystemIntelligencePlatform.FailedLogEvents;
 using SystemIntelligencePlatform.Incidents;
 using SystemIntelligencePlatform.LogEvents;
 using SystemIntelligencePlatform.MonitoredApplications;
@@ -29,11 +29,11 @@ public class SystemIntelligencePlatformDbContext :
     ITenantManagementDbContext,
     IIdentityDbContext
 {
-    public DbSet<Book> Books { get; set; }
     public DbSet<MonitoredApplication> MonitoredApplications { get; set; }
     public DbSet<LogEvent> LogEvents { get; set; }
     public DbSet<Incident> Incidents { get; set; }
     public DbSet<IncidentComment> IncidentComments { get; set; }
+    public DbSet<FailedLogEvent> FailedLogEvents { get; set; }
 
     #region Entities from the modules
 
@@ -71,14 +71,6 @@ public class SystemIntelligencePlatformDbContext :
         builder.ConfigureOpenIddict();
         builder.ConfigureTenantManagement();
         builder.ConfigureBlobStoring();
-
-        builder.Entity<Book>(b =>
-        {
-            b.ToTable(SystemIntelligencePlatformConsts.DbTablePrefix + "Books",
-                SystemIntelligencePlatformConsts.DbSchema);
-            b.ConfigureByConvention();
-            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
-        });
 
         builder.Entity<MonitoredApplication>(b =>
         {
@@ -145,6 +137,21 @@ public class SystemIntelligencePlatformDbContext :
             b.Property(x => x.Content).IsRequired().HasMaxLength(2000);
 
             b.HasIndex(x => x.IncidentId);
+        });
+
+        builder.Entity<FailedLogEvent>(b =>
+        {
+            b.ToTable(SystemIntelligencePlatformConsts.DbTablePrefix + "FailedLogEvents",
+                SystemIntelligencePlatformConsts.DbSchema);
+            b.ConfigureByConvention();
+
+            b.Property(x => x.OriginalMessageBody).IsRequired();
+            b.Property(x => x.ErrorMessage).IsRequired().HasMaxLength(FailedLogEventConsts.MaxErrorMessageLength);
+            b.Property(x => x.StackTrace).HasMaxLength(FailedLogEventConsts.MaxStackTraceLength);
+            b.Property(x => x.CorrelationId).HasMaxLength(64);
+
+            b.HasIndex(x => x.TenantId);
+            b.HasIndex(x => x.CreationTime);
         });
     }
 }

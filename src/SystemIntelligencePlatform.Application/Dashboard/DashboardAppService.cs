@@ -57,7 +57,7 @@ public class DashboardAppService : ApplicationService, IDashboardAppService
         var recentDtos = ObjectMapper.Map<System.Collections.Generic.List<Incident>, System.Collections.Generic.List<IncidentDto>>(recent);
         foreach (var dto in recentDtos)
         {
-            dto.ApplicationName = appLookup.GetValueOrDefault(dto.ApplicationId, "Unknown");
+            dto.ApplicationName = appLookup.TryGetValue(dto.ApplicationId, out var name) ? name : "Unknown";
         }
 
         return new DashboardDto

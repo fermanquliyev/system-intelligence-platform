@@ -11,11 +11,6 @@ public class SystemIntelligencePlatformPermissionDefinitionProvider : Permission
     {
         var myGroup = context.AddGroup(SystemIntelligencePlatformPermissions.GroupName);
 
-        var booksPermission = myGroup.AddPermission(SystemIntelligencePlatformPermissions.Books.Default, L("Permission:Books"));
-        booksPermission.AddChild(SystemIntelligencePlatformPermissions.Books.Create, L("Permission:Books.Create"));
-        booksPermission.AddChild(SystemIntelligencePlatformPermissions.Books.Edit, L("Permission:Books.Edit"));
-        booksPermission.AddChild(SystemIntelligencePlatformPermissions.Books.Delete, L("Permission:Books.Delete"));
-
         myGroup.AddPermission(SystemIntelligencePlatformPermissions.DashboardPermissions.Default, L("Permission:Dashboard"));
 
         var appsPermission = myGroup.AddPermission(SystemIntelligencePlatformPermissions.Applications.Default, L("Permission:Applications"));

@@ -1,0 +1,43 @@
+<!--
+    Azure API Management sample rate limiting policy.
+    Apply this to the "log-ingestion" API operation.
+    
+    Strategy:
+    - rate-limit-by-key uses the TenantId from the JWT claim or API key header
+    - 1000 calls per 60 seconds per tenant
+    - Returns 429 with Retry-After header when exceeded
+    - This is a defense-in-depth layer; the backend also enforces rate limits via SlidingWindowRateLimiter
+-->
+<policies>
+    <inbound>
+        <base />
+        <!-- Extract tenant identifier from API key or JWT -->
+        <set-variable name="tenantKey"
+                      value="@(context.Request.Headers.GetValueOrDefault("X-Api-Key", "unknown"))" />
+        
+        <!-- Per-tenant rate limiting: 1000 requests per 60 seconds -->
+        <rate-limit-by-key calls="1000"
+                           renewal-period="60"
+                           counter-key="@((string)context.Variables["tenantKey"])"
+                           increment-condition="@(context.Response.StatusCode >= 200 && context.Response.StatusCode < 400)"
+                           retry-after-header-name="Retry-After"
+                           retry-after-variable-name="retryAfter"
+                           remaining-calls-header-name="X-RateLimit-Remaining"
+                           remaining-calls-variable-name="remainingCalls"
+                           total-calls-header-name="X-RateLimit-Limit" />
+        
+        <!-- Quota: 1M calls per day per tenant -->
+        <quota-by-key calls="1000000"
+                      renewal-period="86400"
+                      counter-key="@((string)context.Variables["tenantKey"])" />
+    </inbound>
+    <backend>
+        <base />
+    </backend>
+    <outbound>
+        <base />
+    </outbound>
+    <on-error>
+        <base />
+    </on-error>
+</policies>

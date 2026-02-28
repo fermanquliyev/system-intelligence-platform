@@ -41,13 +41,5 @@ function configureRoutes() {
         layout: eLayoutType.application,
         requiredPolicy: 'SystemIntelligencePlatform.Incidents',
       },
-      {
-        path: '/books',
-        name: '::Menu:Books',
-        iconClass: 'fas fa-book',
-        order: 10,
-        layout: eLayoutType.application,
-        requiredPolicy: 'SystemIntelligencePlatform.Books',
-      },
   ]);
 }

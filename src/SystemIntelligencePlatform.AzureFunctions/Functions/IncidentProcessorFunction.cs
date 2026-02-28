@@ -16,7 +16,6 @@ using Microsoft.Extensions.Logging;
 using SystemIntelligencePlatform.EntityFrameworkCore;
 using SystemIntelligencePlatform.Incidents;
 using SystemIntelligencePlatform.LogEvents;
-using Volo.Abp.EntityFrameworkCore;
 
 namespace SystemIntelligencePlatform.AzureFunctions.Functions;
 
@@ -27,22 +26,22 @@ namespace SystemIntelligencePlatform.AzureFunctions.Functions;
 /// </summary>
 public class IncidentProcessorFunction
 {
-    private readonly IDbContextProvider<SystemIntelligencePlatformDbContext> _dbContextProvider;
+    private readonly SystemIntelligencePlatformDbContext _dbContext;
     private readonly TextAnalyticsClient? _textAnalyticsClient;
     private readonly SearchClient? _searchClient;
     private readonly IConfiguration _configuration;
     private readonly ILogger<IncidentProcessorFunction> _logger;
 
-    private const int AnomalyThreshold = IncidentConsts.AnomalyThreshold;
+    private readonly AnomalyDetectionService _anomalyDetection = new();
 
     public IncidentProcessorFunction(
-        IDbContextProvider<SystemIntelligencePlatformDbContext> dbContextProvider,
+        SystemIntelligencePlatformDbContext dbContext,
         IConfiguration configuration,
         ILogger<IncidentProcessorFunction> logger,
         TextAnalyticsClient? textAnalyticsClient = null,
         SearchClient? searchClient = null)
     {
-        _dbContextProvider = dbContextProvider;
+        _dbContext = dbContext;
         _configuration = configuration;
         _logger = logger;
         _textAnalyticsClient = textAnalyticsClient;
@@ -70,7 +69,7 @@ public class IncidentProcessorFunction
             return;
         }
 
-        var dbContext = await _dbContextProvider.GetDbContextAsync();
+        var dbContext = _dbContext;
 
         // 1. Compute hash signature for grouping
         var hashSignature = ComputeHashSignature(logEventMessage);
@@ -97,16 +96,43 @@ public class IncidentProcessorFunction
         _logger.LogInformation("Stored LogEvent {LogEventId} for Application {ApplicationId}",
             logEvent.Id, logEvent.ApplicationId);
 
-        // 3. Check anomaly threshold (count within 1-hour window)
-        var windowStart = DateTime.UtcNow.AddHours(-1);
-        var recentCount = await dbContext.LogEvents
-            .AsNoTracking()
-            .CountAsync(e => e.HashSignature == hashSignature
-                          && e.ApplicationId == logEventMessage.ApplicationId
-                          && e.Timestamp >= windowStart);
+        // 3. Adaptive anomaly detection using statistical baselines
+        var now = DateTime.UtcNow;
+        var fiveMinAgo = now.AddMinutes(-5);
+        var oneHourAgo = now.AddHours(-1);
+        var oneDayAgo = now.AddDays(-1);
+        var sevenDaysAgo = now.AddDays(-7);
 
-        if (recentCount < AnomalyThreshold)
+        var baseQuery = dbContext.LogEvents.AsNoTracking()
+            .Where(e => e.HashSignature == hashSignature && e.ApplicationId == logEventMessage.ApplicationId);
+
+        var metrics = new AnomalyMetrics
+        {
+            EventsLast5Min = await baseQuery.CountAsync(e => e.Timestamp >= fiveMinAgo),
+            EventsLast1Hour = await baseQuery.CountAsync(e => e.Timestamp >= oneHourAgo),
+            EventsLast24Hours = await baseQuery.CountAsync(e => e.Timestamp >= oneDayAgo)
+        };
+
+        var hourlyCounts = await baseQuery
+            .Where(e => e.Timestamp >= sevenDaysAgo)
+            .GroupBy(e => new { e.Timestamp.Date, e.Timestamp.Hour })
+            .Select(g => g.Count())
+            .ToListAsync();
+
+        if (hourlyCounts.Count > 0)
+        {
+            metrics.AverageHourlyBaseline = hourlyCounts.Average();
+            var sumSquares = hourlyCounts.Sum(c => Math.Pow(c - metrics.AverageHourlyBaseline, 2));
+            metrics.StandardDeviation = Math.Sqrt(sumSquares / hourlyCounts.Count);
+        }
+
+        var anomalyResult = _anomalyDetection.Evaluate(metrics, logEventMessage.Level);
+        if (!anomalyResult.ShouldTrigger)
             return;
+
+        _logger.LogInformation(
+            "Anomaly detected: {Reason}, Severity={Severity}, Hash={Hash}",
+            anomalyResult.Reason, anomalyResult.SuggestedSeverity, hashSignature);
 
         // 4. Create or update Incident
         var existingIncident = await dbContext.Incidents
@@ -133,12 +159,12 @@ public class IncidentProcessorFunction
                 logEventMessage.ApplicationId,
                 TruncateTitle(logEventMessage.Message),
                 hashSignature,
-                DetermineSeverity(logEventMessage.Level, recentCount),
+                anomalyResult.SuggestedSeverity,
                 logEventMessage.Timestamp,
                 logEventMessage.TenantId)
             {
                 Description = logEventMessage.StackTrace ?? logEventMessage.Message,
-                OccurrenceCount = recentCount
+                OccurrenceCount = metrics.EventsLast1Hour
             };
 
             dbContext.Incidents.Add(incident);
@@ -181,7 +207,7 @@ public class IncidentProcessorFunction
                 var entityResults = await _textAnalyticsClient.RecognizeEntitiesBatchAsync(recentMessages);
                 var entities = entityResults.Value
                     .Where(r => !r.HasError)
-                    .SelectMany(r => r.Select(e => $"{e.Text}:{e.Category}"))
+                    .SelectMany(r => r.Entities.Select(e => $"{e.Text}:{e.Category}"))
                     .Distinct()
                     .Take(20)
                     .ToList();
@@ -248,20 +274,6 @@ public class IncidentProcessorFunction
         var input = $"{msg.Message?.Substring(0, Math.Min(msg.Message.Length, 200))}|{msg.Source}|{msg.ExceptionType}";
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
         return Convert.ToHexStringLower(bytes);
-    }
-
-    private static IncidentSeverity DetermineSeverity(LogLevel level, int count)
-    {
-        return (level, count) switch
-        {
-            (LogLevel.Critical, _) => IncidentSeverity.Critical,
-            (LogLevel.Error, >= 50) => IncidentSeverity.Critical,
-            (LogLevel.Error, >= 20) => IncidentSeverity.High,
-            (LogLevel.Error, _) => IncidentSeverity.Medium,
-            (LogLevel.Warning, >= 100) => IncidentSeverity.High,
-            (LogLevel.Warning, _) => IncidentSeverity.Medium,
-            _ => IncidentSeverity.Low
-        };
     }
 
     private static string TruncateTitle(string message)

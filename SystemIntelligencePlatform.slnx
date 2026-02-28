@@ -12,6 +12,7 @@
         <Project Path="src/SystemIntelligencePlatform.HttpApi.Client/SystemIntelligencePlatform.HttpApi.Client.csproj" />
         <Project Path="src/SystemIntelligencePlatform.DbMigrator/SystemIntelligencePlatform.DbMigrator.csproj" />
         <Project Path="src/SystemIntelligencePlatform.HttpApi.Host/SystemIntelligencePlatform.HttpApi.Host.csproj" />
+        <Project Path="src/SystemIntelligencePlatform.AzureFunctions/SystemIntelligencePlatform.AzureFunctions.csproj" />
     </Folder>
     <Folder Name="/test/">
         <Project Path="test/SystemIntelligencePlatform.Application.Tests/SystemIntelligencePlatform.Application.Tests.csproj" />

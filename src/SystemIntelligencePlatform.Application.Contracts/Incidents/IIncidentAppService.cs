@@ -13,4 +13,5 @@ public interface IIncidentAppService : IApplicationService
     Task<IncidentDto> UpdateStatusAsync(Guid id, IncidentStatus status);
     Task<IncidentCommentDto> AddCommentAsync(Guid incidentId, CreateIncidentCommentDto input);
     Task<PagedResultDto<IncidentCommentDto>> GetCommentsAsync(Guid incidentId, PagedResultRequestDto input);
+    Task<IncidentSearchResultDto> SearchAsync(IncidentSearchRequestDto input);
 }

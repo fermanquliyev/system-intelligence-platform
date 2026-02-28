@@ -1,0 +1,9 @@
+using SystemIntelligencePlatform.DeadLetter;
+using Xunit;
+
+namespace SystemIntelligencePlatform.EntityFrameworkCore.Applications.DeadLetter;
+
+[Collection(SystemIntelligencePlatformTestConsts.CollectionDefinitionName)]
+public class EfCoreDeadLetterProcessing_Tests : DeadLetterProcessing_Tests<SystemIntelligencePlatformEntityFrameworkCoreTestModule>
+{
+}

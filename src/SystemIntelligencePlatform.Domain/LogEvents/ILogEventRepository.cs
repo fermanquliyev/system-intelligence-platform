@@ -23,4 +23,22 @@ public interface ILogEventRepository : IRepository<LogEvent, Guid>
         Guid applicationId,
         int maxCount = 5,
         CancellationToken cancellationToken = default);
+
+    Task<AnomalyMetrics> GetAnomalyMetricsAsync(
+        string hashSignature,
+        Guid applicationId,
+        CancellationToken cancellationToken = default);
+
+    Task<long> GetCountOlderThanAsync(
+        DateTime cutoff,
+        CancellationToken cancellationToken = default);
+
+    Task<List<LogEvent>> GetOlderThanAsync(
+        DateTime cutoff,
+        int batchSize,
+        CancellationToken cancellationToken = default);
+
+    Task DeleteBatchAsync(
+        IEnumerable<Guid> ids,
+        CancellationToken cancellationToken = default);
 }
