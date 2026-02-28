@@ -188,38 +188,6 @@ resource appService 'Microsoft.Web/sites@2023-01-01' = {
           name: 'Azure__KeyVault__VaultUri'
           value: keyVault.properties.vaultUri
         }
-        {
-          name: 'Azure__ServiceBus__ConnectionString'
-          value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=ServiceBusConnectionString)'
-        }
-        {
-          name: 'Azure__Language__Endpoint'
-          value: languageModule.outputs.endpoint
-        }
-        {
-          name: 'Azure__Language__Key'
-          value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=LanguageServiceKey)'
-        }
-        {
-          name: 'Azure__Search__Endpoint'
-          value: searchModule.outputs.endpoint
-        }
-        {
-          name: 'Azure__Search__Key'
-          value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=SearchServiceKey)'
-        }
-        {
-          name: 'Azure__Search__IndexName'
-          value: 'incidents-index'
-        }
-        {
-          name: 'Azure__SignalR__ConnectionString'
-          value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=SignalRConnectionString)'
-        }
-        {
-          name: 'ConnectionStrings__Default'
-          value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=SqlConnectionString)'
-        }
       ]
     }
   }
@@ -268,10 +236,6 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
           value: applicationInsights.properties.ConnectionString
         }
         {
-          name: 'Azure__ServiceBus__ConnectionString'
-          value: '@Microsoft.KeyVault(VaultName=${keyVault.name};SecretName=ServiceBusConnectionString)'
-        }
-        {
           name: 'Azure__KeyVault__VaultUri'
           value: keyVault.properties.vaultUri
         }
@@ -316,44 +280,84 @@ resource functionAppKeyVaultAccess 'Microsoft.Authorization/roleAssignments@2022
   }
 }
 
-// Store secrets in Key Vault
-resource sqlConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+// Store secrets in Key Vault (hierarchical names map to Configuration keys, e.g. ConnectionStrings--Default -> ConnectionStrings:Default)
+resource connectionStringsDefaultSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: keyVault
-  name: 'SqlConnectionString'
+  name: 'ConnectionStrings--Default'
   properties: {
     value: sqlModule.outputs.connectionString
   }
 }
 
-resource serviceBusConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+resource azureServiceBusConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: keyVault
-  name: 'ServiceBusConnectionString'
+  name: 'Azure--ServiceBus--ConnectionString'
   properties: {
     value: serviceBusModule.outputs.connectionString
   }
 }
 
-resource languageServiceKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+resource serviceBusConnectionSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: keyVault
-  name: 'LanguageServiceKey'
+  name: 'ServiceBusConnection'
+  properties: {
+    value: serviceBusModule.outputs.connectionString
+  }
+}
+
+resource azureLanguageEndpointSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'Azure--Language--Endpoint'
+  properties: {
+    value: languageModule.outputs.endpoint
+  }
+}
+
+resource azureLanguageKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'Azure--Language--Key'
   properties: {
     value: languageModule.outputs.key
   }
 }
 
-resource searchServiceKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+resource azureSearchEndpointSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: keyVault
-  name: 'SearchServiceKey'
+  name: 'Azure--Search--Endpoint'
+  properties: {
+    value: searchModule.outputs.endpoint
+  }
+}
+
+resource azureSearchKeySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'Azure--Search--Key'
   properties: {
     value: searchModule.outputs.key
   }
 }
 
-resource signalRConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+resource azureSearchIndexNameSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: keyVault
-  name: 'SignalRConnectionString'
+  name: 'Azure--Search--IndexName'
+  properties: {
+    value: 'incidents-index'
+  }
+}
+
+resource azureSignalRConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'Azure--SignalR--ConnectionString'
   properties: {
     value: signalRModule.outputs.connectionString
+  }
+}
+
+resource azureApplicationInsightsConnectionStringSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+  parent: keyVault
+  name: 'Azure--ApplicationInsights--ConnectionString'
+  properties: {
+    value: applicationInsights.properties.ConnectionString
   }
 }
 

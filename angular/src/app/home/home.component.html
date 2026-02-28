@@ -1,321 +1,329 @@
-<div class="row mb-3">
-  <div class="col-xl-6 col-12 d-flex">
-    <div class="card h-lg-100 w-100 overflow-hidden">
-      <div class="card-body">
-        <div class="starting-content pe-5">
-          @if(!hasLoggedIn){
-          <h3>Welcome</h3>
-          <p class="lead text-muted mb-2">
-            {{ '::LongWelcomeMessage' | abpLocalization }}
-          </p>
-          <a (click)="login()" class="px-4 btn btn-primary mb-4" role="button">
-            <i class="fa fa-sign-in"></i>
-            {{ 'AbpAccount::Login' | abpLocalization }}
-          </a>
-          }
+@if (!hasLoggedIn) {
 
-          <h4>Getting Started</h4>
-          <p class="lead text-muted mb-2">
-            Learn how to create and run a new web application using the application startup
-            template.
-          </p>
-          <a
-            href="https://abp.io/docs/latest/getting-started"
-            class="btn btn-brand mb-4"
-            target="_blank"
-          >
-            Getting Started
-          </a>
-
-          <h4>Web Application Development Tutorial</h4>
-          <p class="lead text-muted mb-2">
-            Learn how to build an ABP based web application named Acme.BookStore.
-          </p>
-          <a
-            href="https://abp.io/docs/latest/tutorials/book-store/part-01?UI=NG&DB=EF"
-            class="btn btn-brand mb-4"
-            target="_blank"
-          >
-            Explore Tutorial
-          </a>
-        </div>
-        <img class="card-bg-image" src="assets/images/getting-started/bg-01.png" />
-      </div>
+<!-- Navbar -->
+<nav class="landing-nav">
+  <div class="container d-flex justify-content-between align-items-center py-3">
+    <a class="navbar-brand fw-bold fs-4" href="/">
+      <i class="fa fa-bug me-2 text-primary"></i>ErrorIntel
+    </a>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-primary btn-sm" (click)="login()">Sign In</a>
+      <a class="btn btn-primary btn-sm" (click)="login()">Start Free</a>
     </div>
   </div>
-  <div class="col-xl-3 col-md-6 d-flex">
-    <div class="row">
-      <div class="col-12 d-flex">
-        <div class="card overflow-hidden mb-3">
-          <div class="card-body d-flex flex-column">
-            <div class="abp-support abp-logo mb-2"></div>
-            <p class="text-muted mb-2">
-              You can check for similar problems and solutions, or open a new topic to discuss your
-              specific issue.
-            </p>
-            <a
-              class="btn btn-brand soft w-50"
-              href="https://abp.io/support/questions"
-              target="_blank"
-            >
-              Visit Support
-            </a>
-            <img
-              style="margin-bottom: -24px"
-              class="w-100 mt-auto"
-              src="assets/images/getting-started/img-support.png"
-            />
-          </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container">
+    <div class="row align-items-center min-vh-75">
+      <div class="col-lg-7">
+        <div class="hero-badge mb-3">
+          <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
+            <i class="fa fa-sparkles me-1"></i> Powered by Azure AI
+          </span>
         </div>
-      </div>
-      <div class="col-12 d-flex">
-        <div class="card h-md-100 overflow-hidden">
-          <div class="card-body d-flex flex-column">
-            <div class="abp-blog abp-logo mb-2"></div>
-            <p class="text-muted mb-2">
-              You can find content on .NET development, cross-platform, ASP.NET application
-              templates, ABP-related news, and more.
-            </p>
-            <a
-              class="btn btn-brand soft w-50"
-              href="https://abp.io/blog"
-              target="_blank"
-            >
-              Visit Blog
-            </a>
-            <img
-              style="margin-bottom: -24px"
-              class="w-100 mt-auto"
-              src="assets/images/getting-started/img-blog.png"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-xl-3 col-md-6 d-flex">
-    <div class="card h-100 overflow-hidden">
-      <div class="card-body">
-        <div class="abp-community abp-logo mb-2"></div>
-        <p class="lead text-muted">
-          A unique community platform for <span class="fw-bold">ABP Lovers!</span>
+        <h1 class="hero-title">
+          Stop debugging blindly.<br/>
+          <span class="text-primary">Let AI tell you why.</span>
+        </h1>
+        <p class="hero-subtitle">
+          ErrorIntel monitors your .NET applications, detects anomalies in real-time,
+          and uses AI to generate root cause analysis with actionable fix suggestions.
+          Built for SaaS teams on Azure.
         </p>
-        <p class="text-muted mb-2">
-          Explore all ABP users' experiences with the ABP Framework, discover articles and videos on
-          how to use ABP, and join raffles for a chance to win surprise gifts!
-        </p>
-        <a
-          class="btn btn-brand soft mb-3"
-          href="https://abp.io/community/"
-          target="_blank"
-        >
-          Join ABP Community
-        </a>
-      </div>
-      <img class="mt-3 w-100" src="assets/images/getting-started/img-community.png" />
-    </div>
-  </div>
-</div>
-
-<div class="row">
-  <div class="col-xl-3 col-lg-4">
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title text-body">More from ABP.IO</div>
-      </div>
-      <div class="card-body pt-0">
-        <div>
-          <table class="table mb-0">
-            <tbody>
-              <tr>
-                <td class="ps-0 d-flex">
-                  <div
-                    class="rounded-circle me-2 flex-center bg-brand soft"
-                    style="width: 20px; height: 20px"
-                  >
-                    <i class="bi bi-check fs-4"></i>
-                  </div>
-                  <div>Latest Release Logs</div>
-                </td>
-                <td class="text-end pe-0 opacity-25">
-                  <a href="https://github.com/abpframework/abp/releases" target="_blank">
-                    <i class="fa fa-external-link text-dark"></i>
-                  </a>
-                </td>
-              </tr>
-              <tr>
-                <td class="ps-0 d-flex">
-                  <div
-                    class="rounded-circle me-2 flex-center bg-brand soft"
-                    style="width: 20px; height: 20px"
-                  >
-                    <i class="bi bi-check fs-4"></i>
-                  </div>
-                  <div>Video Courses</div>
-                </td>
-                <td class="text-end pe-0 opacity-25">
-                  <a href="https://abp.io/video-courses/essentials" target="_blank">
-                    <i class="fa fa-external-link text-dark"></i>
-                  </a>
-                </td>
-              </tr>
-              <tr>
-                <td class="ps-0 d-flex">
-                  <div
-                    class="rounded-circle me-2 flex-center bg-brand soft"
-                    style="width: 20px; height: 20px"
-                  >
-                    <i class="bi bi-check fs-4"></i>
-                  </div>
-                  <div>Samples</div>
-                </td>
-                <td class="text-end pe-0 opacity-25">
-                  <a href="https://abp.io/docs/latest/Samples/Index" target="_blank">
-                    <i class="fa fa-external-link text-dark"></i>
-                  </a>
-                </td>
-              </tr>
-              <tr>
-                <td class="ps-0 d-flex">
-                  <div
-                    class="rounded-circle me-2 flex-center bg-brand soft"
-                    style="width: 20px; height: 20px"
-                  >
-                    <i class="bi bi-check fs-4"></i>
-                  </div>
-                  <div>Books</div>
-                </td>
-                <td class="text-end pe-0 opacity-25">
-                  <a href="https://abp.io/books" target="_blank">
-                    <i class="fa fa-external-link text-dark"></i>
-                  </a>
-                </td>
-              </tr>
-              <tr>
-                <td class="ps-0 d-flex border-bottom-0">
-                  <div
-                    class="rounded-circle me-2 flex-center bg-brand soft"
-                    style="width: 20px; height: 20px"
-                  >
-                    <i class="bi bi-check fs-4"></i>
-                  </div>
-                  <div>FAQ</div>
-                </td>
-                <td class="text-end pe-0 opacity-25 border-bottom-0">
-                  <a href="https://abp.io/faq" target="_blank">
-                    <i class="fa fa-external-link text-dark"></i>
-                  </a>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="d-flex gap-3 flex-wrap mt-4">
+          <button class="btn btn-primary btn-lg px-5 shadow" (click)="login()">
+            <i class="fa fa-rocket me-2"></i>Start Free
+          </button>
+          <button class="btn btn-outline-secondary btn-lg px-4" (click)="tryDemo()">
+            <i class="fa fa-play-circle me-2"></i>Try Live Demo
+          </button>
         </div>
+        <p class="text-muted mt-3 small">
+          <i class="fa fa-check-circle text-success me-1"></i> No credit card required
+          <span class="mx-2">|</span>
+          <i class="fa fa-check-circle text-success me-1"></i> 10,000 free logs/month
+          <span class="mx-2">|</span>
+          <i class="fa fa-check-circle text-success me-1"></i> Setup in 5 minutes
+        </p>
       </div>
-    </div>
-  </div>
-  <div class="col-xl-6 col-lg-8 d-flex">
-    <div class="card">
-      <div class="card-body d-flex">
-        <div class="row align-items-center">
-          <div class="col-md-8">
-            <p class="text-muted mb-0">THE OFFICIAL GUIDE</p>
-            <h3>Mastering ABP Framework</h3>
-            <p class="text-muted">
-              Written by the creator of the ABP Framework, this book will help you gain a complete
-              understanding of the framework and modern web application development techniques.
-            </p>
-            <div class="d-md-flex mb-2 mb-md-0">
-              <a
-                href="https://www.amazon.com/gp/product/B097Z2DM8Q"
-                target="_blank"
-                class="btn btn-primary soft me-md-2 mb-2 mb-md-0"
-              >
-                Buy on Amazon US
-              </a>
-              <a
-                href="https://www.packtpub.com/product/mastering-abp-framework/9781801079242"
-                target="_blank"
-                class="btn btn-primary soft mb-2 mb-md-0"
-              >
-                Buy on PACKT
-              </a>
+      <div class="col-lg-5 d-none d-lg-block">
+        <div class="hero-visual">
+          <div class="terminal-window">
+            <div class="terminal-header">
+              <span class="terminal-dot red"></span>
+              <span class="terminal-dot yellow"></span>
+              <span class="terminal-dot green"></span>
+              <span class="terminal-title">ErrorIntel Analysis</span>
+            </div>
+            <div class="terminal-body">
+              <div class="terminal-line">
+                <span class="text-danger">CRITICAL</span>
+                <span class="text-light ms-2">NullReferenceException in OrderService</span>
+              </div>
+              <div class="terminal-line mt-2">
+                <span class="text-warning">Root Cause:</span>
+                <span class="text-info ms-1">Payment processing encounters null customer object when session expires mid-checkout</span>
+              </div>
+              <div class="terminal-line mt-2">
+                <span class="text-success">Suggested Fix:</span>
+                <span class="text-info ms-1">Add null check for customer session before payment processing. Implement session refresh middleware.</span>
+              </div>
+              <div class="terminal-line mt-2">
+                <span class="text-muted">Confidence:</span>
+                <span class="text-light ms-1">87%</span>
+                <span class="ms-3 text-muted">Occurrences:</span>
+                <span class="text-light ms-1">156</span>
+              </div>
             </div>
           </div>
-          <div class="col">
-            <img class="w-100" src="assets/images/getting-started/book.png" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-it-works py-5">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-subtitle">From log to fix in seconds</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-3 text-center">
+        <div class="step-number">1</div>
+        <h5 class="fw-bold mt-3">Ingest</h5>
+        <p class="text-muted small">Send logs via REST API or NuGet package. We handle the rest.</p>
+      </div>
+      <div class="col-md-3 text-center">
+        <div class="step-number">2</div>
+        <h5 class="fw-bold mt-3">Detect</h5>
+        <p class="text-muted small">Adaptive anomaly detection identifies spikes, bursts, and critical errors.</p>
+      </div>
+      <div class="col-md-3 text-center">
+        <div class="step-number">3</div>
+        <h5 class="fw-bold mt-3">Analyze</h5>
+        <p class="text-muted small">Azure AI generates root cause summaries and suggested fixes.</p>
+      </div>
+      <div class="col-md-3 text-center">
+        <div class="step-number">4</div>
+        <h5 class="fw-bold mt-3">Alert</h5>
+        <p class="text-muted small">Get notified via dashboard, SignalR, or webhooks instantly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features py-5 bg-light">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="section-title">Powerful Features</h2>
+      <p class="section-subtitle">Everything you need to master your application errors</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4">
+        <div class="card feature-card h-100 border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="feature-icon-wrapper mb-3">
+              <i class="fa fa-brain fa-2x text-primary"></i>
+            </div>
+            <h5 class="fw-bold">AI Root Cause Analysis</h5>
+            <p class="text-muted mb-0">Every incident gets an AI-generated summary: what happened, why, and how to fix it.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card feature-card h-100 border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="feature-icon-wrapper mb-3">
+              <i class="fa fa-chart-line fa-2x text-primary"></i>
+            </div>
+            <h5 class="fw-bold">Adaptive Anomaly Detection</h5>
+            <p class="text-muted mb-0">Statistical baselines per app detect spikes, bursts, and critical errors automatically.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card feature-card h-100 border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="feature-icon-wrapper mb-3">
+              <i class="fa fa-bolt fa-2x text-primary"></i>
+            </div>
+            <h5 class="fw-bold">Real-Time Dashboard</h5>
+            <p class="text-muted mb-0">Live incident feed powered by SignalR with severity charts and trend analysis.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card feature-card h-100 border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="feature-icon-wrapper mb-3">
+              <i class="fa fa-bell fa-2x text-primary"></i>
+            </div>
+            <h5 class="fw-bold">Webhook Notifications</h5>
+            <p class="text-muted mb-0">Instant alerts to Slack, Teams, or any HTTP endpoint when incidents occur.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card feature-card h-100 border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="feature-icon-wrapper mb-3">
+              <i class="fa fa-search fa-2x text-primary"></i>
+            </div>
+            <h5 class="fw-bold">Full-Text Search</h5>
+            <p class="text-muted mb-0">Search across all incidents and logs using Azure AI Search.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="card feature-card h-100 border-0 shadow-sm">
+          <div class="card-body p-4">
+            <div class="feature-icon-wrapper mb-3">
+              <i class="fa fa-users fa-2x text-primary"></i>
+            </div>
+            <h5 class="fw-bold">Multi-Tenant</h5>
+            <p class="text-muted mb-0">Each team gets fully isolated data, API keys, and billing.</p>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <div class="col-xl-3 col-lg-4">
-    <div class="card">
-      <div class="card-header">
-        <div class="card-title text-body">Follow us on Social Media</div>
+</section>
+
+<!-- Pricing -->
+<section class="pricing py-5" id="pricing">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="section-title">Simple, Transparent Pricing</h2>
+      <p class="section-subtitle">Start free, upgrade when you're ready</p>
+    </div>
+    <div class="row g-4 justify-content-center">
+
+      <!-- Free -->
+      <div class="col-lg-4 col-md-6">
+        <div class="card pricing-card h-100 border shadow-sm">
+          <div class="card-body p-4 d-flex flex-column">
+            <h4 class="fw-bold">Free</h4>
+            <div class="my-3">
+              <span class="display-4 fw-bold">$0</span>
+              <span class="text-muted">/month</span>
+            </div>
+            <p class="text-muted mb-4">Perfect for side projects and evaluation</p>
+            <ul class="list-unstyled flex-grow-1">
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>10,000 logs/month</li>
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>3 applications</li>
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>7-day retention</li>
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>Anomaly detection</li>
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>Real-time dashboard</li>
+              <li class="mb-3 text-muted"><i class="fa fa-times text-muted me-2"></i>AI root cause analysis</li>
+              <li class="mb-3 text-muted"><i class="fa fa-times text-muted me-2"></i>Webhook notifications</li>
+            </ul>
+            <button class="btn btn-outline-primary w-100 mt-auto" (click)="login()">Get Started Free</button>
+          </div>
+        </div>
       </div>
-      <div class="card-body pt-0">
-        <div>
-          <table class="table mb-0">
-            <tbody>
-              <tr>
-                <td class="ps-0 d-flex">
-                  <div class="logo-x me-2"></div>
-                  <div>X.com</div>
-                </td>
-                <td class="text-end pe-0 opacity-25">
-                  <a href="https://twitter.com/abpframework" target="_blank">
-                    <i class="fa fa-external-link text-dark"></i>
-                  </a>
-                </td>
-              </tr>
-              <tr>
-                <td class="ps-0 d-flex">
-                  <img src="assets/images/getting-started/discord.svg" class="me-2" />
-                  <div>Discord</div>
-                </td>
-                <td class="text-end pe-0 opacity-25">
-                  <a href="https://abp.io/community/discord" target="_blank">
-                    <i class="fa fa-external-link text-dark"></i>
-                  </a>
-                </td>
-              </tr>
-              <tr>
-                <td class="ps-0 d-flex">
-                  <img src="assets/images/getting-started/stack-overflow.svg" class="me-2" />
-                  <div>Stack Overflow</div>
-                </td>
-                <td class="text-end pe-0 opacity-25">
-                  <a href="https://stackoverflow.com/questions/tagged/abp" target="_blank">
-                    <i class="fa fa-external-link text-dark"></i>
-                  </a>
-                </td>
-              </tr>
-              <tr>
-                <td class="ps-0 d-flex">
-                  <img src="assets/images/getting-started/youtube.svg" class="me-2" />
-                  <div>YouTube</div>
-                </td>
-                <td class="text-end pe-0 opacity-25">
-                  <a href="https://www.youtube.com/@Volosoft" target="_blank">
-                    <i class="fa fa-external-link text-dark"></i>
-                  </a>
-                </td>
-              </tr>
-              <tr>
-                <td class="ps-0 d-flex border-bottom-0">
-                  <img src="assets/images/getting-started/instagram.svg" class="me-2" />
-                  <div>Instagram</div>
-                </td>
-                <td class="text-end pe-0 opacity-25 border-bottom-0">
-                  <a href="https://www.instagram.com/abpframework/" target="_blank">
-                    <i class="fa fa-external-link text-dark"></i>
-                  </a>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+
+      <!-- Pro -->
+      <div class="col-lg-4 col-md-6">
+        <div class="card pricing-card h-100 border-primary shadow-lg position-relative popular">
+          <div class="popular-badge">
+            <span class="badge bg-primary px-3 py-2">Most Popular</span>
+          </div>
+          <div class="card-body p-4 d-flex flex-column">
+            <h4 class="fw-bold">Pro</h4>
+            <div class="my-3">
+              <span class="display-4 fw-bold">$49</span>
+              <span class="text-muted">/month</span>
+            </div>
+            <p class="text-muted mb-4">For growing teams that need AI-powered insights</p>
+            <ul class="list-unstyled flex-grow-1">
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i><strong>500,000</strong> logs/month</li>
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i><strong>20</strong> applications</li>
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i><strong>30-day</strong> retention</li>
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>Anomaly detection</li>
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>Real-time dashboard</li>
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i><strong>AI root cause analysis</strong></li>
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i><strong>Webhook notifications</strong></li>
+            </ul>
+            <button class="btn btn-primary w-100 mt-auto" (click)="login()">Start Pro Trial</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enterprise -->
+      <div class="col-lg-4 col-md-6">
+        <div class="card pricing-card h-100 border shadow-sm">
+          <div class="card-body p-4 d-flex flex-column">
+            <h4 class="fw-bold">Enterprise</h4>
+            <div class="my-3">
+              <span class="display-4 fw-bold">Custom</span>
+            </div>
+            <p class="text-muted mb-4">For large organizations with advanced needs</p>
+            <ul class="list-unstyled flex-grow-1">
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i><strong>10,000,000</strong> logs/month</li>
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i><strong>100</strong> applications</li>
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i><strong>90-day</strong> retention</li>
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>Everything in Pro</li>
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>SLA guarantee</li>
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>Priority support</li>
+              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>Custom deployment</li>
+            </ul>
+            <button class="btn btn-outline-primary w-100 mt-auto" (click)="login()">Contact Sales</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
+</section>
+
+<!-- CTA -->
+<section class="cta py-5">
+  <div class="container text-center">
+    <h2 class="fw-bold mb-3">Ready to stop debugging blindly?</h2>
+    <p class="lead text-muted mb-4">Join .NET teams who resolve incidents 10x faster with AI-powered error intelligence.</p>
+    <button class="btn btn-primary btn-lg px-5 shadow" (click)="login()">
+      <i class="fa fa-rocket me-2"></i>Start Free — No Credit Card
+    </button>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="landing-footer py-4 mt-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6">
+        <span class="fw-bold"><i class="fa fa-bug me-1 text-primary"></i>ErrorIntel</span>
+        <span class="text-muted ms-2">&copy; 2026 — AI Error Intelligence for .NET Teams</span>
+      </div>
+      <div class="col-md-6 text-md-end">
+        <a href="#pricing" class="text-muted me-3">Pricing</a>
+        <a (click)="login()" class="text-muted me-3" style="cursor:pointer">Sign In</a>
+        <a (click)="tryDemo()" class="text-muted" style="cursor:pointer">Demo</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+} @else {
+
+<!-- Logged-in redirect -->
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+      <div class="mb-4">
+        <i class="fa fa-tachometer-alt fa-4x text-primary"></i>
+      </div>
+      <h2 class="mb-3">Welcome back!</h2>
+      <p class="lead text-muted mb-4">Head to your dashboard to see your incidents and system health.</p>
+      <a routerLink="/dashboard" class="btn btn-primary btn-lg px-5">
+        <i class="fa fa-arrow-right me-2"></i>Go to Dashboard
+      </a>
+    </div>
+  </div>
 </div>
+
+}

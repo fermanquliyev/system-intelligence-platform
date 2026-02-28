@@ -86,12 +86,6 @@ public class OpenIddictDataSeedContributor : OpenIddictDataSeedContributorBase, 
             );
         }
 
-        
-        
-
-
-
-
         // Swagger Client
         var swaggerClientId = configurationSection["SystemIntelligencePlatform_Swagger:ClientId"];
         if (!swaggerClientId.IsNullOrWhiteSpace())

@@ -24,13 +24,14 @@ public class Program
             Log.Information("Starting SystemIntelligencePlatform.HttpApi.Host.");
             var builder = WebApplication.CreateBuilder(args);
 
-            // Azure Key Vault - secrets loaded via Managed Identity in production
+            // Azure Key Vault: in production (App Service), set Azure:KeyVault:VaultUri and use managed identity only.
+            // All secrets and connection strings are loaded from Key Vault; appsettings.json holds only non-secret config.
             var keyVaultUri = builder.Configuration["Azure:KeyVault:VaultUri"];
             if (!string.IsNullOrEmpty(keyVaultUri))
             {
                 builder.Configuration.AddAzureKeyVault(
                     new Uri(keyVaultUri),
-                    new DefaultAzureCredential());
+                    new DefaultAzureCredential()); // Uses System-assigned Managed Identity when running in Azure
             }
 
             builder.Host

@@ -55,7 +55,7 @@ export class IncidentsComponent implements OnInit {
       if (this.filterSeverity !== null) params.severity = this.filterSeverity;
       if (this.filterStatus !== null) params.status = this.filterStatus;
       return this.incidentService.getList(params);
-    }).subscribe(response => {
+    }).subscribe((response: any) => {
       this.data = response;
     });
   }

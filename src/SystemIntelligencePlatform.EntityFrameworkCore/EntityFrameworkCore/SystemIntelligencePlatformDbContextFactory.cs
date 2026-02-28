@@ -17,7 +17,7 @@ public class SystemIntelligencePlatformDbContextFactory : IDesignTimeDbContextFa
         SystemIntelligencePlatformEfCoreEntityExtensionMappings.Configure();
 
         var builder = new DbContextOptionsBuilder<SystemIntelligencePlatformDbContext>()
-            .UseSqlServer(configuration.GetConnectionString("Default"));
+            .UseNpgsql(configuration.GetConnectionString("Default"));
         
         return new SystemIntelligencePlatformDbContext(builder.Options);
     }

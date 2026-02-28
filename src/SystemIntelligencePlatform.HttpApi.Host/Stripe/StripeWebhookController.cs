@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Stripe;
 using SystemIntelligencePlatform.Subscriptions;
 
 namespace SystemIntelligencePlatform.Stripe;
@@ -44,8 +45,8 @@ public class StripeWebhookController : ControllerBase
         }
 
         // In production, validate Stripe signature:
-        // var sigHeader = Request.Headers["Stripe-Signature"];
-        // var evt = EventUtility.ConstructEvent(json, sigHeader, webhookSecret);
+        var sigHeader = Request.Headers["Stripe-Signature"];
+        var evt = EventUtility.ConstructEvent(json, sigHeader, "webhookSecret");
 
         var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
