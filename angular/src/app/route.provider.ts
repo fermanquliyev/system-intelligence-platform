@@ -15,7 +15,7 @@ function configureRoutes() {
         name: '::Menu:Home',
         iconClass: 'fas fa-home',
         order: 1,
-        layout: eLayoutType.application,
+        layout: eLayoutType.empty,
       },
       {
         path: '/dashboard',

@@ -56,7 +56,7 @@ export class ApplicationsComponent implements OnInit {
   isApiKeyModalOpen = false;
 
   ngOnInit() {
-    this.list.hookToQuery(query => this.appService.getList(query)).subscribe(response => {
+    this.list.hookToQuery(query => this.appService.getList(query)).subscribe((response: any) => {
       this.data = response;
     });
   }
