@@ -73,6 +73,16 @@ public class SystemIntelligencePlatformHttpApiHostModule : AbpModule
             });
         });
 
+        // Always set the issuer from config so authorize/token endpoints and discovery are consistent (fixes 400 on /connect/authorize in Development).
+        var authority = configuration["AuthServer:Authority"];
+        if (!string.IsNullOrEmpty(authority))
+        {
+            PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
+            {
+                serverBuilder.SetIssuer(new Uri(authority!));
+            });
+        }
+
         if (!hostingEnvironment.IsDevelopment())
         {
             var certPath = Path.Combine(hostingEnvironment.ContentRootPath, "openiddict.pfx");
@@ -89,7 +99,6 @@ public class SystemIntelligencePlatformHttpApiHostModule : AbpModule
                 {
                     serverBuilder.AddProductionEncryptionAndSigningCertificate("openiddict.pfx", configuration["AuthServer:CertificatePassPhrase"]!);
                 }
-                serverBuilder.SetIssuer(new Uri(configuration["AuthServer:Authority"]!));
             });
         }
     }

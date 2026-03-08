@@ -10,6 +10,7 @@ using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
 using Volo.Abp.Guids;
+using Volo.Abp.TenantManagement;
 
 namespace SystemIntelligencePlatform.Data;
 
@@ -18,18 +19,23 @@ public class DemoDataSeederContributor : IDataSeedContributor, ITransientDepende
     private readonly IRepository<MonitoredApplication, Guid> _applicationRepository;
     private readonly IRepository<Incident, Guid> _incidentRepository;
     private readonly IRepository<Subscription, Guid> _subscriptionRepository;
+    private readonly TenantManager _tenantManager;
     private readonly IGuidGenerator _guidGenerator;
-
+    private readonly IRepository<Tenant, Guid> _tenantRepository;   
     public DemoDataSeederContributor(
         IRepository<MonitoredApplication, Guid> applicationRepository,
         IRepository<Incident, Guid> incidentRepository,
         IRepository<Subscription, Guid> subscriptionRepository,
+        TenantManager tenantManager,
+        IRepository<Tenant, Guid> tenantRepository,
         IGuidGenerator guidGenerator)
     {
         _applicationRepository = applicationRepository;
         _incidentRepository = incidentRepository;
         _subscriptionRepository = subscriptionRepository;
         _guidGenerator = guidGenerator;
+        _tenantManager = tenantManager;
+        _tenantRepository = tenantRepository;
     }
 
     public async Task SeedAsync(DataSeedContext context)
@@ -38,11 +44,32 @@ public class DemoDataSeederContributor : IDataSeedContributor, ITransientDepende
         if (await _applicationRepository.GetCountAsync() > 0)
             return;
 
+        // 0. Create demo tenant if not exists
+        Guid? demoTenantId = null;
+        try
+        {
+            var existingTenant = await _tenantManager.CreateAsync("Demo Tenant");
+            if (existingTenant != null)
+            {
+                demoTenantId = existingTenant.Id;
+            }
+
+        }
+        catch (Exception ex)
+        {
+            // Log exception if needed, but continue with seeding
+            Console.WriteLine($"Error checking for existing tenant: {ex.Message}");
+            var tenant = await _tenantRepository.GetAsync(x => x.NormalizedName == "DEMO TENANT");
+            if (tenant != null) { 
+                demoTenantId = tenant.Id;
+            }
+        }
+        
         // 1. Create Free subscription for demo tenant (null tenantId)
         var subscription = new Subscription(
             _guidGenerator.Create(),
             SubscriptionPlan.Free,
-            tenantId: null);
+            tenantId: demoTenantId);
         await _subscriptionRepository.InsertAsync(subscription);
 
         // 2. Create three MonitoredApplications
@@ -54,7 +81,7 @@ public class DemoDataSeederContributor : IDataSeedContributor, ITransientDepende
             appId1,
             "Contoso API",
             ApiKeyGenerator.Hash("demo-api-key-contoso"),
-            tenantId: null)
+            tenantId: demoTenantId)
         {
             IsActive = true,
             Description = "Main API service for Contoso e-commerce platform",
@@ -65,7 +92,7 @@ public class DemoDataSeederContributor : IDataSeedContributor, ITransientDepende
             appId2,
             "Northwind Web",
             ApiKeyGenerator.Hash("demo-api-key-northwind"),
-            tenantId: null)
+            tenantId: demoTenantId)
         {
             IsActive = true,
             Description = "Web application frontend for Northwind trading",
@@ -76,7 +103,7 @@ public class DemoDataSeederContributor : IDataSeedContributor, ITransientDepende
             appId3,
             "AdventureWorks Worker",
             ApiKeyGenerator.Hash("demo-api-key-adventureworks"),
-            tenantId: null)
+            tenantId: demoTenantId)
         {
             IsActive = true,
             Description = "Background worker service for AdventureWorks data processing",
@@ -99,7 +126,7 @@ public class DemoDataSeederContributor : IDataSeedContributor, ITransientDepende
             incident1Hash,
             IncidentSeverity.Critical,
             baseTime.AddDays(-5),
-            tenantId: null)
+            tenantId: demoTenantId)
         {
             Description = "Payment processing encounters null customer object when session expires during checkout flow.",
             OccurrenceCount = 156
@@ -125,7 +152,7 @@ public class DemoDataSeederContributor : IDataSeedContributor, ITransientDepende
             incident2Hash,
             IncidentSeverity.High,
             baseTime.AddDays(-4),
-            tenantId: null)
+            tenantId: demoTenantId)
         {
             Description = "Database query times out under heavy load when retrieving inventory data.",
             OccurrenceCount = 43
@@ -151,7 +178,7 @@ public class DemoDataSeederContributor : IDataSeedContributor, ITransientDepende
             incident3Hash,
             IncidentSeverity.Medium,
             baseTime.AddDays(-3),
-            tenantId: null)
+            tenantId: demoTenantId)
         {
             Description = "Redis connection pool exhausted during peak traffic periods.",
             OccurrenceCount = 12
@@ -177,7 +204,7 @@ public class DemoDataSeederContributor : IDataSeedContributor, ITransientDepende
             incident4Hash,
             IncidentSeverity.Critical,
             baseTime.AddDays(-2),
-            tenantId: null)
+            tenantId: demoTenantId)
         {
             Description = "Report generation loads entire dataset into memory causing out of memory exceptions.",
             OccurrenceCount = 8
@@ -203,7 +230,7 @@ public class DemoDataSeederContributor : IDataSeedContributor, ITransientDepende
             incident5Hash,
             IncidentSeverity.Low,
             baseTime.AddDays(-1),
-            tenantId: null)
+            tenantId: demoTenantId)
         {
             Description = "JWT token expiration not properly handled in authentication middleware.",
             OccurrenceCount = 234

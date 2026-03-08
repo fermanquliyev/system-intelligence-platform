@@ -2,8 +2,10 @@ import { Environment } from '@abp/ng.core';
 
 const baseUrl = 'http://localhost:4200';
 
+// Use HTTP when API runs in Docker (docker-compose). Use https://localhost:44397 when running API locally with HTTPS.
+const authServerUrl = 'http://localhost:44397';
 const oAuthConfig = {
-  issuer: 'http://localhost:44397/',
+  issuer: `${authServerUrl}/`,
   redirectUri: baseUrl,
   clientId: 'SystemIntelligencePlatform_App',
   responseType: 'code',
@@ -20,7 +22,7 @@ export const environment = {
   oAuthConfig,
   apis: {
     default: {
-      url: 'http://localhost:44397',
+      url: authServerUrl,
       rootNamespace: 'SystemIntelligencePlatform',
     },
     AbpAccountPublic: {

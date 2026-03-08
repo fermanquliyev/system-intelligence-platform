@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using SystemIntelligencePlatform.Incidents;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
@@ -33,6 +34,8 @@ public class SystemIntelligencePlatformEntityFrameworkCoreModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)
     {
+        // Npgsql 6+ requires UTC for timestamptz; ABP/OpenIddict may use Local. Allow legacy behavior so writes succeed.
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
         SystemIntelligencePlatformEfCoreEntityExtensionMappings.Configure();
     }

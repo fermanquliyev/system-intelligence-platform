@@ -29,6 +29,21 @@ services:
       timeout: 5s
       retries: 5
 
+  migrator:
+    build:
+      context: .
+      dockerfile: src/SystemIntelligencePlatform.DbMigrator/Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=sip;Username=postgres;Password=postgres"
+      OpenIddict__Applications__SystemIntelligencePlatform_App__ClientId: "SystemIntelligencePlatform_App"
+      OpenIddict__Applications__SystemIntelligencePlatform_App__RootUrl: "http://localhost:4200"
+      OpenIddict__Applications__SystemIntelligencePlatform_Swagger__ClientId: "SystemIntelligencePlatform_Swagger"
+      OpenIddict__Applications__SystemIntelligencePlatform_Swagger__RootUrl: "http://localhost:44397/"
+    restart: "no"
+
   api:
     build:
       context: .
@@ -38,6 +53,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
     environment:
       # Kestrel must listen on 8080 so host port 44397 maps correctly
       ASPNETCORE_URLS: "http://*:8080"
@@ -69,6 +86,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
     environment:
       # Use Postgres container (service name "postgres"); env overrides appsettings so local host Postgres is never used
       ConnectionStrings__Default: "Host=postgres;Port=5432;Database=sip;Username=postgres;Password=postgres"

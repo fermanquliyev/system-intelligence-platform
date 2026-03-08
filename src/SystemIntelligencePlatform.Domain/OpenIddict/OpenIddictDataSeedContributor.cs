@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
@@ -63,6 +63,10 @@ public class OpenIddictDataSeedContributor : OpenIddictDataSeedContributorBase, 
         if (!consoleAndAngularClientId.IsNullOrWhiteSpace())
         {
             var consoleAndAngularClientRootUrl = configurationSection["SystemIntelligencePlatform_App:RootUrl"]?.TrimEnd('/');
+            // Allow both with and without trailing slash so redirect_uri validation never fails on slash difference.
+            var redirectUris = string.IsNullOrEmpty(consoleAndAngularClientRootUrl)
+                ? new List<string>()
+                : new List<string> { consoleAndAngularClientRootUrl, consoleAndAngularClientRootUrl.EnsureEndsWith('/') };
             await CreateOrUpdateApplicationAsync(
                 applicationType: OpenIddictConstants.ApplicationTypes.Web,
                 name: consoleAndAngularClientId!,
@@ -79,8 +83,8 @@ public class OpenIddictDataSeedContributor : OpenIddictDataSeedContributorBase, 
                     "Impersonation"
                 },
                 scopes: commonScopes,
-                redirectUris: new List<string> { consoleAndAngularClientRootUrl },
-                postLogoutRedirectUris: new List<string> { consoleAndAngularClientRootUrl },
+                redirectUris,
+                postLogoutRedirectUris: redirectUris,
                 clientUri: consoleAndAngularClientRootUrl,
                 logoUri: "/images/clients/angular.svg"
             );
@@ -102,7 +106,7 @@ public class OpenIddictDataSeedContributor : OpenIddictDataSeedContributorBase, 
                 grantTypes: new List<string> { OpenIddictConstants.GrantTypes.AuthorizationCode, },
                 scopes: commonScopes,
                 redirectUris: new List<string> { $"{swaggerRootUrl}/swagger/oauth2-redirect.html" },
-                clientUri: swaggerRootUrl.EnsureEndsWith('/') + "swagger",
+                clientUri: (swaggerRootUrl ?? string.Empty).EnsureEndsWith('/') + "swagger",
                 logoUri: "/images/clients/swagger.svg"
             );
         }
