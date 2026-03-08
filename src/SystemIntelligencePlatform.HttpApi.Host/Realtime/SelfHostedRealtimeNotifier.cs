@@ -4,13 +4,16 @@ using Microsoft.AspNetCore.SignalR;
 using SystemIntelligencePlatform.Incidents;
 using Volo.Abp.DependencyInjection;
 
-namespace SystemIntelligencePlatform.AzureInfrastructure;
+namespace SystemIntelligencePlatform.Realtime;
 
-public class SignalRRealtimeNotifier : IRealtimeNotifier, ITransientDependency
+/// <summary>
+/// Self-hosted ASP.NET Core SignalR notifier. Broadcasts to tenant groups; no Azure SignalR.
+/// </summary>
+public class SelfHostedRealtimeNotifier : IRealtimeNotifier, ITransientDependency
 {
     private readonly IHubContext<IncidentHub> _hubContext;
 
-    public SignalRRealtimeNotifier(IHubContext<IncidentHub> hubContext)
+    public SelfHostedRealtimeNotifier(IHubContext<IncidentHub> hubContext)
     {
         _hubContext = hubContext;
     }

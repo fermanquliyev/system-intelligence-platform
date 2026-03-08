@@ -5,7 +5,7 @@ namespace SystemIntelligencePlatform.Incidents;
 
 /// <summary>
 /// Analyzes incident-related log messages using AI/NLP services.
-/// Infrastructure layer provides the Azure Language implementation.
+/// Infrastructure layer provides the local or external AI implementation.
 /// </summary>
 public interface IIncidentAiAnalyzer
 {

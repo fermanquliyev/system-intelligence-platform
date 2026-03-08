@@ -3,12 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using Azure;
-using Azure.AI.TextAnalytics;
-using Azure.Identity;
-using Azure.Messaging.ServiceBus;
-using Azure.Search.Documents;
-using Azure.Search.Documents.Indexes;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
@@ -19,8 +13,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
 using OpenIddict.Validation.AspNetCore;
 using OpenIddict.Server.AspNetCore;
-using SystemIntelligencePlatform.AzureInfrastructure;
 using SystemIntelligencePlatform.EntityFrameworkCore;
+using SystemIntelligencePlatform.Infrastructure;
+using SystemIntelligencePlatform.Realtime;
 using SystemIntelligencePlatform.MultiTenancy;
 using SystemIntelligencePlatform.HealthChecks;
 using Microsoft.OpenApi;
@@ -80,14 +75,20 @@ public class SystemIntelligencePlatformHttpApiHostModule : AbpModule
 
         if (!hostingEnvironment.IsDevelopment())
         {
+            var certPath = Path.Combine(hostingEnvironment.ContentRootPath, "openiddict.pfx");
+            var useProductionCert = File.Exists(certPath);
+
             PreConfigure<AbpOpenIddictAspNetCoreOptions>(options =>
             {
-                options.AddDevelopmentEncryptionAndSigningCertificate = false;
+                options.AddDevelopmentEncryptionAndSigningCertificate = !useProductionCert;
             });
 
             PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
             {
-                serverBuilder.AddProductionEncryptionAndSigningCertificate("openiddict.pfx", configuration["AuthServer:CertificatePassPhrase"]!);
+                if (useProductionCert)
+                {
+                    serverBuilder.AddProductionEncryptionAndSigningCertificate("openiddict.pfx", configuration["AuthServer:CertificatePassPhrase"]!);
+                }
                 serverBuilder.SetIssuer(new Uri(configuration["AuthServer:Authority"]!));
             });
         }
@@ -128,7 +129,23 @@ public class SystemIntelligencePlatformHttpApiHostModule : AbpModule
         ConfigureSwagger(context, configuration);
         ConfigureVirtualFileSystem(context);
         ConfigureCors(context, configuration);
-        ConfigureAzureServices(context, configuration);
+        ConfigureRabbitMq(context, configuration);
+        ConfigureSignalR(context, configuration);
+    }
+
+    private void ConfigureRabbitMq(ServiceConfigurationContext context, IConfiguration configuration)
+    {
+        context.Services.Configure<RabbitMqOptions>(configuration.GetSection(RabbitMqOptions.SectionName));
+        var host = configuration["RabbitMQ:Host"];
+        if (!string.IsNullOrEmpty(host))
+        {
+            context.Services.AddHostedService<IncidentNotificationConsumerService>();
+        }
+    }
+
+    private void ConfigureSignalR(ServiceConfigurationContext context, IConfiguration configuration)
+    {
+        context.Services.AddSignalR();
     }
 
     private void ConfigureStudio(IHostEnvironment hostingEnvironment)
@@ -234,13 +251,18 @@ public class SystemIntelligencePlatformHttpApiHostModule : AbpModule
         {
             options.AddDefaultPolicy(builder =>
             {
+                var origins = configuration["App:CorsOrigins"]?
+                    .Split(",", StringSplitOptions.RemoveEmptyEntries)
+                    .Select(o => o.Trim().RemovePostFix("/"))
+                    .Where(o => !string.IsNullOrEmpty(o))
+                    .ToArray() ?? Array.Empty<string>();
+                // Fallback so Angular dev server is allowed when CorsOrigins is empty (e.g. env not applied)
+                if (origins.Length == 0)
+                {
+                    origins = new[] { "http://localhost:4200", "http://127.0.0.1:4200" };
+                }
                 builder
-                    .WithOrigins(
-                        configuration["App:CorsOrigins"]?
-                            .Split(",", StringSplitOptions.RemoveEmptyEntries)
-                            .Select(o => o.Trim().RemovePostFix("/"))
-                            .ToArray() ?? Array.Empty<string>()
-                    )
+                    .WithOrigins(origins)
                     .WithAbpExposedHeaders()
                     .SetIsOriginAllowedToAllowWildcardSubdomains()
                     .AllowAnyHeader()
@@ -254,59 +276,6 @@ public class SystemIntelligencePlatformHttpApiHostModule : AbpModule
     {
         context.Services.AddSystemIntelligencePlatformHealthChecks();
     }
-
-    private void ConfigureAzureServices(ServiceConfigurationContext context, IConfiguration configuration)
-    {
-        // Azure Service Bus
-        var sbConnStr = configuration["Azure:ServiceBus:ConnectionString"];
-        if (!string.IsNullOrEmpty(sbConnStr))
-        {
-            context.Services.AddSingleton(new ServiceBusClient(sbConnStr));
-        }
-
-        // Azure Language (Text Analytics)
-        var langEndpoint = configuration["Azure:Language:Endpoint"];
-        var langKey = configuration["Azure:Language:Key"];
-        if (!string.IsNullOrEmpty(langEndpoint) && !string.IsNullOrEmpty(langKey))
-        {
-            context.Services.AddSingleton(new TextAnalyticsClient(
-                new Uri(langEndpoint), new AzureKeyCredential(langKey)));
-        }
-
-        // Azure AI Search
-        var searchEndpoint = configuration["Azure:Search:Endpoint"];
-        var searchKey = configuration["Azure:Search:Key"];
-        var searchIndex = configuration["Azure:Search:IndexName"] ?? "incidents-index";
-        if (!string.IsNullOrEmpty(searchEndpoint) && !string.IsNullOrEmpty(searchKey))
-        {
-            var searchUri = new Uri(searchEndpoint);
-            var searchCredential = new AzureKeyCredential(searchKey);
-            context.Services.AddSingleton(new SearchClient(searchUri, searchIndex, searchCredential));
-            context.Services.AddSingleton(new SearchIndexClient(searchUri, searchCredential));
-        }
-
-        // Azure SignalR
-        var signalRConnStr = configuration["Azure:SignalR:ConnectionString"];
-        if (!string.IsNullOrEmpty(signalRConnStr))
-        {
-            context.Services.AddSignalR().AddAzureSignalR(signalRConnStr);
-        }
-        else
-        {
-            context.Services.AddSignalR();
-        }
-
-        // Application Insights
-        var aiConnStr = configuration["Azure:ApplicationInsights:ConnectionString"];
-        if (!string.IsNullOrEmpty(aiConnStr))
-        {
-            context.Services.AddApplicationInsightsTelemetry(options =>
-            {
-                options.ConnectionString = aiConnStr;
-            });
-        }
-    }
-
 
     public override void OnApplicationInitialization(ApplicationInitializationContext context)
     {
@@ -328,11 +297,11 @@ public class SystemIntelligencePlatformHttpApiHostModule : AbpModule
         }
 
         app.UseRouting();
+        app.UseCors(); // CORS before other middleware so preflight (OPTIONS) gets Access-Control-* headers
         app.UseMiddleware<SystemIntelligencePlatform.RateLimiting.RateLimitingMiddleware>();
         app.MapAbpStaticAssets();
         app.UseAbpStudioLink();
         app.UseAbpSecurityHeaders();
-        app.UseCors();
         app.UseAuthentication();
         app.UseAbpOpenIddictValidation();
 

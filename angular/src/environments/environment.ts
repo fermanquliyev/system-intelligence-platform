@@ -3,12 +3,12 @@ import { Environment } from '@abp/ng.core';
 const baseUrl = 'http://localhost:4200';
 
 const oAuthConfig = {
-  issuer: 'https://localhost:44397/',
+  issuer: 'http://localhost:44397/',
   redirectUri: baseUrl,
   clientId: 'SystemIntelligencePlatform_App',
   responseType: 'code',
   scope: 'offline_access SystemIntelligencePlatform',
-  requireHttps: true,
+  requireHttps: false,
 };
 
 export const environment = {
@@ -20,7 +20,7 @@ export const environment = {
   oAuthConfig,
   apis: {
     default: {
-      url: 'https://localhost:44397',
+      url: 'http://localhost:44397',
       rootNamespace: 'SystemIntelligencePlatform',
     },
     AbpAccountPublic: {

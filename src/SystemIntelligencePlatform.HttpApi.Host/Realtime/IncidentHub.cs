@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using Volo.Abp.MultiTenancy;
 
-namespace SystemIntelligencePlatform.AzureInfrastructure;
+namespace SystemIntelligencePlatform.Realtime;
 
 [Authorize]
 public class IncidentHub : Hub

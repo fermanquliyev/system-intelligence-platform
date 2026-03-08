@@ -24,6 +24,7 @@
     "@abp/ng.identity": "~10.1.0",
     "@abp/ng.account": "~10.1.0",
     "@abp/ng.theme.lepton-x": "~5.1.0",
+    "@swimlane/ngx-datatable": "~22.0.0",
     "@angular/animations": "~21.0.0",
     "@angular/common": "~21.0.0",
     "@angular/compiler": "~21.0.0",

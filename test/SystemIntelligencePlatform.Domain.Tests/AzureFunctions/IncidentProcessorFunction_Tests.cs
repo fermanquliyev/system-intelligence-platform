@@ -4,7 +4,7 @@ using SystemIntelligencePlatform.LogEvents;
 using Shouldly;
 using Xunit;
 
-namespace SystemIntelligencePlatform.AzureFunctions;
+namespace SystemIntelligencePlatform.Domain.Tests;
 
 /// <summary>
 /// Tests for incident processing logic, focusing on domain-level behavior.

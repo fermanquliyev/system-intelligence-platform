@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <Import Project="..\..\common.props" />
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>SystemIntelligencePlatform.BackgroundWorker</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.2" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SystemIntelligencePlatform.Application\SystemIntelligencePlatform.Application.csproj" />
+    <ProjectReference Include="..\SystemIntelligencePlatform.Domain\SystemIntelligencePlatform.Domain.csproj" />
+    <ProjectReference Include="..\SystemIntelligencePlatform.EntityFrameworkCore\SystemIntelligencePlatform.EntityFrameworkCore.csproj" />
+  </ItemGroup>
+
+</Project>

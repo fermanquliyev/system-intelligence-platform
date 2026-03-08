@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -1431,7 +1431,7 @@ namespace SystemIntelligencePlatform.Migrations
                 table: "AppSubscriptions",
                 column: "StripeSubscriptionId",
                 unique: true,
-                filter: "[StripeSubscriptionId] IS NOT NULL");
+                filter: "\"StripeSubscriptionId\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_AppSubscriptions_TenantId",

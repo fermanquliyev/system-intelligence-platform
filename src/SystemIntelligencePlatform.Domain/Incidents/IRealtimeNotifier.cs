@@ -5,7 +5,7 @@ namespace SystemIntelligencePlatform.Incidents;
 
 /// <summary>
 /// Pushes real-time events to connected clients, scoped by tenant.
-/// Infrastructure layer provides the Azure SignalR implementation.
+/// Infrastructure layer provides the self-hosted SignalR implementation.
 /// </summary>
 public interface IRealtimeNotifier
 {

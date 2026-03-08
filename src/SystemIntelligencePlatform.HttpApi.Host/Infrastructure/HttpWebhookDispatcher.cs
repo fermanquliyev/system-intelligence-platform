@@ -9,7 +9,7 @@ using SystemIntelligencePlatform.Webhooks;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Domain.Repositories;
 
-namespace SystemIntelligencePlatform.AzureInfrastructure;
+namespace SystemIntelligencePlatform.Infrastructure;
 
 public class HttpWebhookDispatcher : IWebhookDispatcher, ITransientDependency
 {

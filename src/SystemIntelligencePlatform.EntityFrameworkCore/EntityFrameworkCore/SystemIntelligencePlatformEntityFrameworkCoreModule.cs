@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using SystemIntelligencePlatform.Incidents;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.BlobStoring.Database.EntityFrameworkCore;
@@ -43,7 +44,7 @@ public class SystemIntelligencePlatformEntityFrameworkCoreModule : AbpModule
             options.AddDefaultRepositories(includeAllEntities: true);
             options.AddRepository<MonitoredApplications.MonitoredApplication, Repositories.EfCoreMonitoredApplicationRepository>();
             options.AddRepository<LogEvents.LogEvent, Repositories.EfCoreLogEventRepository>();
-            options.AddRepository<Incidents.Incident, Repositories.EfCoreIncidentRepository>();
+            options.AddRepository<Incident, Repositories.EfCoreIncidentRepository>();
         });
 
         if (AbpStudioAnalyzeHelper.IsInAnalyzeMode)

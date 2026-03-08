@@ -1,141 +1,164 @@
-# ErrorIntel — AI-Powered Error Intelligence for .NET Teams
+# System Intelligence Platform — Self-Hosted Error Intelligence for .NET
 
-> Stop debugging blindly. Let AI tell you what went wrong, why, and how to fix it.
+> Monitor your .NET applications, detect anomalies in real-time, and get root cause analysis with actionable fix suggestions. **Fully self-hostable and cloud-agnostic.**
 
-## What is ErrorIntel?
+## What It Does
 
-ErrorIntel is a SaaS platform that monitors your .NET applications, detects anomalies in real-time, and uses AI to provide root cause analysis with actionable fix suggestions.
-
-Built for .NET SaaS teams running on Azure.
+The platform ingests application logs, runs adaptive anomaly detection, enriches incidents with local AI analysis, and delivers real-time notifications. No Azure or other cloud lock-in: everything runs on **PostgreSQL**, **RabbitMQ**, **ASP.NET Core SignalR**, and a **.NET Background Worker**.
 
 ## Features
 
-- **Adaptive Anomaly Detection** - Automatically detects spikes, bursts, and critical errors using statistical baselines per application
-- **AI Root Cause Analysis** - Every incident gets an AI-generated summary explaining what happened, why, and how to fix it (Pro plan)
-- **Real-Time Dashboard** - Live incident feed powered by Azure SignalR with severity charts and trend analysis  
-- **Multi-Tenant Architecture** - Each team gets isolated data, API keys, and billing
-- **Webhook Notifications** - Get instant alerts in Slack, Teams, or any HTTP endpoint when incidents occur (Pro plan)
-- **Smart Retention** - Automatic archival of old logs with configurable retention per plan
-- **Full-Text Search** - Search across all incidents and logs using Azure AI Search
-- **API-First** - Simple REST API for log ingestion with API key authentication
+- **Adaptive Anomaly Detection** — Spikes, bursts, and critical errors detected using statistical baselines per application
+- **Local AI Analysis** — Deterministic key phrase extraction, root cause summary, and suggested fixes (no external APIs)
+- **Real-Time Dashboard** — Live incident feed via self-hosted SignalR with severity charts and trend analysis
+- **Multi-Tenant Architecture** — Isolated data, API keys, and billing per tenant
+- **Webhook Notifications** — HTTP callbacks to Slack, Teams, or any endpoint when incidents occur
+- **Full-Text Search** — Search incidents by title, description, and root cause (PostgreSQL, no external search engine)
+- **API-First** — REST API for log ingestion with API key authentication
+- **OpenTelemetry** — Distributed tracing, metrics, and structured logging (Console exporter by default; Prometheus can be added)
 
-## How It Works
+## Architecture Flow
 
-1. **Install** — Add our NuGet package or send logs via REST API
-2. **Ingest** — Your application logs flow through Azure Service Bus for reliable async processing  
-3. **Detect** — Adaptive anomaly detection identifies issues in real-time
-4. **Analyze** — Azure AI generates root cause summaries and fix suggestions
-5. **Alert** — Get notified via dashboard, SignalR, or webhooks
+```
+Angular → API (HttpApi.Host) → RabbitMQ (log-ingestion)
+                                    ↓
+                    BackgroundWorker consumes queue
+                                    ↓
+                    Incident detection + Local AI + PostgreSQL
+                                    ↓
+                    RabbitMQ (incident-notifications)
+                                    ↓
+                    API consumes → SignalR → Angular clients
+```
 
-## Pricing
-
-| | Free | Pro | Enterprise |
-|---|---|---|---|
-| Logs/month | 10,000 | 500,000 | 10,000,000 |
-| Applications | 3 | 20 | 100 |
-| Retention | 7 days | 30 days | 90 days |
-| AI Root Cause | ❌ | ✅ | ✅ |
-| Webhooks | ❌ | ✅ | ✅ |
-| Price | Free | $49/mo | Contact us |
+- **Database**: PostgreSQL (EF Core + Npgsql). No changes to DbContext, repositories, or migrations.
+- **Message queue**: RabbitMQ (durable queue `log-ingestion`). JSON serialization, retry and reconnection.
+- **Background processing**: `SystemIntelligencePlatform.BackgroundWorker` (HostedService) instead of Azure Functions.
+- **Search**: `DatabaseIncidentSearchService` — EF Core queries with ILIKE; tenant filtering, pagination, sort by timestamp.
+- **Realtime**: Self-hosted ASP.NET Core SignalR (`IncidentHub`); no Azure SignalR.
+- **Secrets**: appsettings.json and environment variables only (no Azure Key Vault).
+- **Telemetry**: OpenTelemetry (tracing, metrics); Application Insights removed.
 
 ## Tech Stack
 
 - **Backend**: ABP.io Framework (.NET 10, EF Core)
-- **Frontend**: Angular 19 with ABP UI
-- **Database**: Azure SQL (serverless)
-- **Messaging**: Azure Service Bus
-- **Processing**: Azure Functions (isolated worker)
-- **AI**: Azure Language Services (sentiment, key phrases, entity recognition)
-- **Search**: Azure AI Search
-- **Real-Time**: Azure SignalR Service
+- **Frontend**: Angular with ABP UI
+- **Database**: PostgreSQL 16
+- **Messaging**: RabbitMQ 3 (with management UI on 15672)
+- **Processing**: .NET Worker Service (BackgroundWorker)
+- **AI**: Local deterministic analyzer (pure C#)
+- **Search**: PostgreSQL full-text (EF Core)
+- **Real-Time**: ASP.NET Core SignalR
 - **Auth**: OpenIddict (OAuth 2.0 / OIDC)
 
-## Quick Start
+## Quick Start (Local with Docker Compose)
 
-### Prerequisites
-
-- .NET 10 SDK
-- Node.js 20+
-- Azure subscription (or local development with emulators)
-
-### Local Development
+### 1. Start infrastructure
 
 ```bash
-# Clone
-git clone https://github.com/your-org/ErrorIntel.git
-cd ErrorIntel
+docker-compose up -d postgres rabbitmq
+```
 
-# Backend
-dotnet build SystemIntelligencePlatform.slnx
+- **PostgreSQL**: `localhost:5432` (user `postgres`, password `postgres`, database `sip`)
+- **RabbitMQ**: AMQP `localhost:5672`, Management UI `http://localhost:15672` (guest/guest)
+
+### 2. Run database migrations
+
+```bash
+cd src/SystemIntelligencePlatform.DbMigrator
+dotnet run
+```
+
+### 3. Start the API
+
+```bash
 cd src/SystemIntelligencePlatform.HttpApi.Host
 dotnet run
+```
 
-# Frontend
+API runs at `https://localhost:44397` (or the port in `appsettings.json`).
+
+### 4. Start the Background Worker
+
+```bash
+cd src/SystemIntelligencePlatform.BackgroundWorker
+dotnet run
+```
+
+### 5. Start the Angular application
+
+```bash
 cd angular
 npm install
 npm start
 ```
 
-### Configuration
+Angular at `http://localhost:4200`.
 
-Set these in `appsettings.json` or Azure Key Vault:
+## Running the Full Stack with Docker Compose
+
+From the repository root:
+
+```bash
+docker-compose up --build
+```
+
+This starts:
+
+- **postgres** — PostgreSQL 16 on 5432
+- **rabbitmq** — RabbitMQ with management on 5672 and 15672
+- **api** — ASP.NET Core API (port 44397 → 8080)
+- **worker** — Background worker (consumes `log-ingestion`, publishes to `incident-notifications`)
+- **angular** — Angular app served by nginx (port 4200 → 80)
+
+Run migrations before or after `docker-compose up` (e.g. run DbMigrator once against the `postgres` service or a local PostgreSQL instance using the same connection string).
+
+## Configuration
+
+Use `appsettings.json` and/or environment variables. No Azure sections.
+
+**API (HttpApi.Host)** — Example:
 
 ```json
 {
   "ConnectionStrings": {
-    "Default": "Server=...;Database=ErrorIntel;..."
+    "Default": "Host=localhost;Port=5432;Database=sip;Username=postgres;Password=postgres"
   },
-  "Stripe": {
-    "SecretKey": "sk_...",
-    "WebhookSecret": "whsec_...",
-    "ProPriceId": "price_...",
-    "EnterprisePriceId": "price_..."
+  "RabbitMQ": {
+    "Host": "localhost",
+    "Port": 5672,
+    "Username": "guest",
+    "Password": "guest",
+    "VirtualHost": "/"
   },
-  "Azure": {
-    "ServiceBus": { "ConnectionString": "..." },
-    "Language": { "Endpoint": "...", "Key": "..." },
-    "Search": { "Endpoint": "...", "Key": "...", "IndexName": "incidents-index" },
-    "SignalR": { "ConnectionString": "..." }
-  }
+  "Search": { "Provider": "Database" },
+  "OpenTelemetry": { "Enabled": true }
 }
 ```
 
-### Running Tests
+**Worker (BackgroundWorker)** — Same `ConnectionStrings:Default` and `RabbitMQ` section.
+
+Secrets (e.g. Stripe, auth) can be overridden via environment variables or additional config files.
+
+## Tests
+
+All tests run without any external cloud services:
 
 ```bash
 dotnet test SystemIntelligencePlatform.slnx
 ```
 
-## Testing Strategy
+- **Domain / Application / EntityFrameworkCore** — Existing tests unchanged
+- **Infrastructure.Tests** — Local AI analyzer (deterministic), database search (with in-memory SQLite in tests), and related behavior
 
-- **Domain Tests**: Pure unit tests for entities, value objects, and domain services (anomaly detection, plan limits, subscription lifecycle)
-- **Application Tests**: Service-level tests for plan enforcement, usage tracking, and webhook management
-- **EF Core Tests**: Integration tests with in-memory SQLite for repository operations, data retention, and query behavior
-- **Function Tests**: Unit tests for Azure Function processing logic using mocked dependencies
+## Success Criteria (Met)
 
-## Deployment
-
-Infrastructure is defined in Bicep templates (`/infra`):
-
-```bash
-az deployment group create \
-  --resource-group errorintel-rg \
-  --template-file infra/main.bicep \
-  --parameters environment=production
-```
-
-CI/CD via GitHub Actions (`.github/workflows/`).
-
-## Roadmap
-
-- [ ] Slack/Teams native integrations
-- [ ] Custom anomaly detection rules
-- [ ] Log replay and incident timeline
-- [ ] Multi-region deployment
-- [ ] SOC 2 compliance
-- [ ] Mobile app for on-call engineers
-- [ ] AI-powered incident grouping across services
+- Solution builds successfully
+- All tests pass
+- No Azure packages or configuration in the codebase
+- System runs locally with `docker-compose up` using PostgreSQL, RabbitMQ, SignalR, and the Background Worker
+- Database layer remains PostgreSQL with EF Core + Npgsql; DDD and business logic unchanged
 
 ## License
 
-Proprietary. Copyright © 2026 ErrorIntel.
+Proprietary. Copyright © 2026.

@@ -12,13 +12,14 @@
         <Project Path="src/SystemIntelligencePlatform.HttpApi.Client/SystemIntelligencePlatform.HttpApi.Client.csproj" />
         <Project Path="src/SystemIntelligencePlatform.DbMigrator/SystemIntelligencePlatform.DbMigrator.csproj" />
         <Project Path="src/SystemIntelligencePlatform.HttpApi.Host/SystemIntelligencePlatform.HttpApi.Host.csproj" />
-        <Project Path="src/SystemIntelligencePlatform.AzureFunctions/SystemIntelligencePlatform.AzureFunctions.csproj" />
+        <Project Path="src/SystemIntelligencePlatform.BackgroundWorker/SystemIntelligencePlatform.BackgroundWorker.csproj" />
     </Folder>
     <Folder Name="/test/">
         <Project Path="test/SystemIntelligencePlatform.Application.Tests/SystemIntelligencePlatform.Application.Tests.csproj" />
         <Project Path="test/SystemIntelligencePlatform.EntityFrameworkCore.Tests/SystemIntelligencePlatform.EntityFrameworkCore.Tests.csproj" />
         <Project Path="test/SystemIntelligencePlatform.TestBase/SystemIntelligencePlatform.TestBase.csproj" />
         <Project Path="test/SystemIntelligencePlatform.Domain.Tests/SystemIntelligencePlatform.Domain.Tests.csproj" />
+        <Project Path="test/SystemIntelligencePlatform.Infrastructure.Tests/SystemIntelligencePlatform.Infrastructure.Tests.csproj" />
         <Project Path="test/SystemIntelligencePlatform.HttpApi.Client.ConsoleTestApp/SystemIntelligencePlatform.HttpApi.Client.ConsoleTestApp.csproj" />
     </Folder>
 </Solution>

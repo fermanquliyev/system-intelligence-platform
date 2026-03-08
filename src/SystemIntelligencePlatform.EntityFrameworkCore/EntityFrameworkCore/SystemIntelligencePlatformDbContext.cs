@@ -172,7 +172,7 @@ public class SystemIntelligencePlatformDbContext :
             b.Property(x => x.StripeSubscriptionId).HasMaxLength(SubscriptionConsts.MaxStripeSubscriptionIdLength);
 
             b.HasIndex(x => x.TenantId).IsUnique();
-            b.HasIndex(x => x.StripeSubscriptionId).IsUnique().HasFilter("[StripeSubscriptionId] IS NOT NULL");
+            b.HasIndex(x => x.StripeSubscriptionId).IsUnique().HasFilter("\"StripeSubscriptionId\" IS NOT NULL");
         });
 
         builder.Entity<MonthlyUsage>(b =>

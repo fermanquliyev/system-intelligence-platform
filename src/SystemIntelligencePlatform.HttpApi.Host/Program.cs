@@ -1,12 +1,14 @@
 using System;
 using System.Threading.Tasks;
-using Azure.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Events;
+using SystemIntelligencePlatform.Data;
 
 namespace SystemIntelligencePlatform;
 
@@ -14,6 +16,9 @@ public class Program
 {
     public async static Task<int> Main(string[] args)
     {
+        // Allow DateTime.Kind=Local when writing to PostgreSQL timestamptz (ABP seed and others use local time).
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
         Log.Logger = new LoggerConfiguration()
             .WriteTo.Async(c => c.File("Logs/logs.txt"))
             .WriteTo.Async(c => c.Console())
@@ -24,15 +29,20 @@ public class Program
             Log.Information("Starting SystemIntelligencePlatform.HttpApi.Host.");
             var builder = WebApplication.CreateBuilder(args);
 
-            // Azure Key Vault: in production (App Service), set Azure:KeyVault:VaultUri and use managed identity only.
-            // All secrets and connection strings are loaded from Key Vault; appsettings.json holds only non-secret config.
-            var keyVaultUri = builder.Configuration["Azure:KeyVault:VaultUri"];
-            if (!string.IsNullOrEmpty(keyVaultUri))
-            {
-                builder.Configuration.AddAzureKeyVault(
-                    new Uri(keyVaultUri),
-                    new DefaultAzureCredential()); // Uses System-assigned Managed Identity when running in Azure
-            }
+            // OpenTelemetry: distributed tracing, metrics; default Console exporter (Prometheus can be added later)
+            builder.Services.AddOpenTelemetry()
+                .WithTracing(t =>
+                {
+                    t.AddAspNetCoreInstrumentation()
+                        .AddHttpClientInstrumentation()
+                        .AddConsoleExporter();
+                })
+                .WithMetrics(m =>
+                {
+                    m.AddAspNetCoreInstrumentation()
+                        .AddRuntimeInstrumentation()
+                        .AddConsoleExporter();
+                });
 
             builder.Host
                 .AddAppSettingsSecretsJson()
@@ -46,6 +56,9 @@ public class Program
                 });
             await builder.AddApplicationAsync<SystemIntelligencePlatformHttpApiHostModule>();
             var app = builder.Build();
+
+            await ApplyMigrationsAsync(app);
+
             await app.InitializeApplicationAsync();
             await app.RunAsync();
             return 0;
@@ -64,5 +77,12 @@ public class Program
         {
             Log.CloseAndFlush();
         }
+    }
+
+    private static async Task ApplyMigrationsAsync(WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var migrator = scope.ServiceProvider.GetRequiredService<SystemIntelligencePlatformDbMigrationService>();
+        await migrator.MigrateAsync();
     }
 }

@@ -6,7 +6,7 @@ namespace SystemIntelligencePlatform.Incidents;
 
 /// <summary>
 /// Indexes and searches incidents via a search index.
-/// Infrastructure layer provides the Azure AI Search implementation.
+/// Infrastructure layer provides the database search implementation.
 /// </summary>
 public interface IAzureSearchService
 {
@@ -20,6 +20,7 @@ public class IncidentSearchDocument
     public string Id { get; set; } = null!;
     public string Title { get; set; } = null!;
     public string? Description { get; set; }
+    public string? RootCauseSummary { get; set; }
     public string Severity { get; set; } = null!;
     public string ApplicationName { get; set; } = null!;
     public string? KeyPhrases { get; set; }
