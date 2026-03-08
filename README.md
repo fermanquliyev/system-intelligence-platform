@@ -51,6 +51,23 @@ Angular → API (HttpApi.Host) → RabbitMQ (log-ingestion)
 - **Real-Time**: ASP.NET Core SignalR
 - **Auth**: OpenIddict (OAuth 2.0 / OIDC)
 
+## Prerequisites
+
+- **.NET SDK** (10 or later)
+- **Node.js** and **npm** (for the Angular app)
+- **Docker** and **Docker Compose** (for the full-stack Docker setup)
+- **ABP CLI** — required for the Angular app to talk to the ABP backend (auth, API client, OpenID discovery). Install once, then run `abp install-libs` from the repo root before first run or after cloning:
+
+```bash
+# Install ABP CLI globally
+dotnet tool install -g Volo.Abp.Cli
+
+# From the repository root: install/update ABP client libraries (Angular, etc.)
+abp install-libs
+```
+
+Run `abp install-libs` after cloning the repo and whenever ABP client packages are updated. Without it, the Angular app may fail with CORS or "error loading discovery document" when calling the API.
+
 ## Quick Start (Local with Docker Compose)
 
 ### 1. Start infrastructure
@@ -93,11 +110,11 @@ npm install
 npm start
 ```
 
-Angular at `http://localhost:4200`.
+Angular at `http://localhost:4200`. If you haven't already, run **`abp install-libs`** from the repo root once (see [Prerequisites](#prerequisites)).
 
 ## Running the Full Stack with Docker Compose
 
-From the repository root:
+From the repository root, ensure you've run **`abp install-libs`** at least once (see [Prerequisites](#prerequisites)), then:
 
 ```bash
 docker-compose up --build
