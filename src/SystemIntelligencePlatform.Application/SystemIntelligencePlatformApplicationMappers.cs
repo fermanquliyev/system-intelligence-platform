@@ -15,7 +15,17 @@ public partial class MonitoredApplicationToMonitoredApplicationDtoMapper : Mappe
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Target)]
 public partial class IncidentToIncidentDtoMapper : MapperBase<Incident, IncidentDto>
 {
+    /// <inheritdoc />
+    /// <remarks>
+    /// <see cref="IncidentDto.ApplicationName"/> is set in <see cref="IncidentAppService"/>.
+    /// <see cref="IncidentDto.Comments"/> is loaded only in GetAsync; list queries must not map the aggregate collection.
+    /// </remarks>
+    [MapperIgnoreTarget(nameof(IncidentDto.ApplicationName))]
+    [MapperIgnoreTarget(nameof(IncidentDto.Comments))]
     public override partial IncidentDto Map(Incident source);
+
+    [MapperIgnoreTarget(nameof(IncidentDto.ApplicationName))]
+    [MapperIgnoreTarget(nameof(IncidentDto.Comments))]
     public override partial void Map(Incident source, IncidentDto destination);
 }
 

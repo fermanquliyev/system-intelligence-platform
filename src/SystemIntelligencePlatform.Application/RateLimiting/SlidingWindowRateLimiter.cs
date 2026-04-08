@@ -3,7 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
-using SystemIntelligencePlatform.RateLimiting;
+using SystemIntelligencePlatform.InstanceConfiguration;
 using Volo.Abp.DependencyInjection;
 
 namespace SystemIntelligencePlatform.RateLimiting;
@@ -16,19 +16,23 @@ namespace SystemIntelligencePlatform.RateLimiting;
 public class SlidingWindowRateLimiter : IRateLimiter, ITransientDependency
 {
     private readonly IDistributedCache _cache;
-    private readonly RateLimitingOptions _options;
+    private readonly IOptions<RateLimitingOptions> _fileOptions;
+    private readonly IInstanceConfigurationProvider _instanceConfiguration;
 
     public SlidingWindowRateLimiter(
         IDistributedCache cache,
-        IOptions<RateLimitingOptions> options)
+        IOptions<RateLimitingOptions> fileOptions,
+        IInstanceConfigurationProvider instanceConfiguration)
     {
         _cache = cache;
-        _options = options.Value;
+        _fileOptions = fileOptions;
+        _instanceConfiguration = instanceConfiguration;
     }
 
     public async Task<RateLimitResult> CheckAsync(Guid tenantId, string resource)
     {
-        var windowKey = GetWindowKey(tenantId, resource);
+        var _options = EffectiveConfigurationBinder.GetRateLimiting(_instanceConfiguration, _fileOptions);
+        var windowKey = GetWindowKey(tenantId, resource, _options);
         var currentCountBytes = await _cache.GetAsync(windowKey);
 
         var currentCount = 0;
@@ -63,9 +67,9 @@ public class SlidingWindowRateLimiter : IRateLimiter, ITransientDependency
         };
     }
 
-    private string GetWindowKey(Guid tenantId, string resource)
+    private static string GetWindowKey(Guid tenantId, string resource, RateLimitingOptions options)
     {
-        var windowSlot = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / _options.WindowSizeSeconds;
+        var windowSlot = DateTimeOffset.UtcNow.ToUnixTimeSeconds() / options.WindowSizeSeconds;
         return $"ratelimit:{tenantId}:{resource}:{windowSlot}";
     }
 }

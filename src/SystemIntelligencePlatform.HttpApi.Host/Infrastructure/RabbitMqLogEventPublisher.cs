@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
+using SystemIntelligencePlatform.InstanceConfiguration;
 using SystemIntelligencePlatform.LogEvents;
 using Volo.Abp.DependencyInjection;
 
@@ -16,43 +17,66 @@ public class RabbitMqLogEventPublisher : ILogEventPublisher, ISingletonDependenc
     private const int MaxPublishRetries = 3;
     private const int RetryDelayMs = 500;
 
-    private readonly RabbitMqOptions _options;
+    private readonly IOptions<RabbitMqOptions> _fileOptions;
+    private readonly IInstanceConfigurationProvider _instanceConfiguration;
     private readonly ILogger<RabbitMqLogEventPublisher> _logger;
     private IConnection? _connection;
     private IModel? _channel;
+    private string _connectionFingerprint = "";
     private readonly object _lock = new();
     private bool _disposed;
 
     public RabbitMqLogEventPublisher(
-        IOptions<RabbitMqOptions> options,
+        IOptions<RabbitMqOptions> fileOptions,
+        IInstanceConfigurationProvider instanceConfiguration,
         ILogger<RabbitMqLogEventPublisher> logger)
     {
-        _options = options.Value;
+        _fileOptions = fileOptions;
+        _instanceConfiguration = instanceConfiguration;
         _logger = logger;
     }
 
     private IModel GetOrCreateChannel()
     {
-        if (_channel?.IsOpen == true)
+        var options = EffectiveConfigurationBinder.GetRabbitMq(_instanceConfiguration, _fileOptions);
+        var fingerprint = $"{options.Host}|{options.Port}|{options.Username}|{options.VirtualHost}|{options.Password}";
+
+        if (_channel?.IsOpen == true && fingerprint == _connectionFingerprint)
             return _channel;
 
         lock (_lock)
         {
+            if (_channel?.IsOpen == true && fingerprint == _connectionFingerprint)
+                return _channel;
+
+            if (fingerprint != _connectionFingerprint)
+            {
+                try
+                {
+                    _channel?.Dispose();
+                    _connection?.Dispose();
+                }
+                catch { /* ignore */ }
+                _channel = null;
+                _connection = null;
+                _connectionFingerprint = fingerprint;
+            }
+
             if (_connection?.IsOpen != true)
             {
                 var factory = new ConnectionFactory
                 {
-                    HostName = _options.Host,
-                    Port = _options.Port,
-                    UserName = _options.Username,
-                    Password = _options.Password,
-                    VirtualHost = string.IsNullOrEmpty(_options.VirtualHost) ? "/" : _options.VirtualHost,
+                    HostName = options.Host,
+                    Port = options.Port,
+                    UserName = options.Username,
+                    Password = options.Password,
+                    VirtualHost = string.IsNullOrEmpty(options.VirtualHost) ? "/" : options.VirtualHost,
                     AutomaticRecoveryEnabled = true,
                     NetworkRecoveryInterval = TimeSpan.FromSeconds(10),
                     RequestedHeartbeat = TimeSpan.FromSeconds(60)
                 };
                 _connection = factory.CreateConnection();
-                _logger.LogInformation("RabbitMQ connection established to {Host}:{Port}", _options.Host, _options.Port);
+                _logger.LogInformation("RabbitMQ connection established to {Host}:{Port}", options.Host, options.Port);
             }
 
             if (_channel?.IsOpen != true)

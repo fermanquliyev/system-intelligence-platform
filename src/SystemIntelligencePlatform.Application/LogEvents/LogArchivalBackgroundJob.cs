@@ -50,7 +50,6 @@ public class LogArchivalBackgroundJob : AsyncBackgroundJob<LogArchivalArgs>, ITr
             var json = JsonSerializer.Serialize(batch.Select(e => new
             {
                 e.Id,
-                e.TenantId,
                 e.ApplicationId,
                 Level = e.Level.ToString(),
                 e.Message,

@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using SystemIntelligencePlatform.Incidents;
@@ -6,9 +5,6 @@ using Volo.Abp.DependencyInjection;
 
 namespace SystemIntelligencePlatform.Realtime;
 
-/// <summary>
-/// Self-hosted ASP.NET Core SignalR notifier. Broadcasts to tenant groups; no Azure SignalR.
-/// </summary>
 public class SelfHostedRealtimeNotifier : IRealtimeNotifier, ITransientDependency
 {
     private readonly IHubContext<IncidentHub> _hubContext;
@@ -18,26 +14,18 @@ public class SelfHostedRealtimeNotifier : IRealtimeNotifier, ITransientDependenc
         _hubContext = hubContext;
     }
 
-    public async Task NotifyIncidentCreatedAsync(Guid? tenantId, IncidentNotification notification)
+    public Task NotifyIncidentCreatedAsync(IncidentNotification notification)
     {
-        var group = GetTenantGroup(tenantId);
-        await _hubContext.Clients.Group(group).SendAsync("IncidentCreated", notification);
+        return _hubContext.Clients.All.SendAsync("IncidentCreated", notification);
     }
 
-    public async Task NotifyIncidentUpdatedAsync(Guid? tenantId, IncidentNotification notification)
+    public Task NotifyIncidentUpdatedAsync(IncidentNotification notification)
     {
-        var group = GetTenantGroup(tenantId);
-        await _hubContext.Clients.Group(group).SendAsync("IncidentUpdated", notification);
+        return _hubContext.Clients.All.SendAsync("IncidentUpdated", notification);
     }
 
-    public async Task NotifyIncidentResolvedAsync(Guid? tenantId, IncidentNotification notification)
+    public Task NotifyIncidentResolvedAsync(IncidentNotification notification)
     {
-        var group = GetTenantGroup(tenantId);
-        await _hubContext.Clients.Group(group).SendAsync("IncidentResolved", notification);
-    }
-
-    private static string GetTenantGroup(Guid? tenantId)
-    {
-        return tenantId.HasValue ? $"tenant_{tenantId.Value}" : "host";
+        return _hubContext.Clients.All.SendAsync("IncidentResolved", notification);
     }
 }

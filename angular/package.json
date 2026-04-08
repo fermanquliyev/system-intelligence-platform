@@ -20,7 +20,6 @@
     "@abp/ng.setting-management": "~10.1.0",
     "@abp/ng.theme.shared": "~10.1.0",
     "@abp/ng.feature-management": "~10.1.0",
-    "@abp/ng.tenant-management": "~10.1.0",
     "@abp/ng.identity": "~10.1.0",
     "@abp/ng.account": "~10.1.0",
     "@abp/ng.theme.lepton-x": "~5.1.0",

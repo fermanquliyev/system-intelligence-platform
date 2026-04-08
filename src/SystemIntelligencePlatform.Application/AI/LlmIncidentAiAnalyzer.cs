@@ -11,6 +11,7 @@ using Microsoft.Extensions.Caching.Memory;
 using System.Net.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using SystemIntelligencePlatform.InstanceConfiguration;
 using SystemIntelligencePlatform.Incidents;
 using Volo.Abp.DependencyInjection;
 
@@ -22,7 +23,8 @@ namespace SystemIntelligencePlatform.AI;
 [Dependency(ReplaceServices = true)]
 public class LlmIncidentAiAnalyzer : IIncidentAiAnalyzer, ITransientDependency
 {
-    private readonly GoogleAiOptions _options;
+    private readonly IOptions<GoogleAiOptions> _fileOptions;
+    private readonly IInstanceConfigurationProvider _instanceConfiguration;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly LocalIncidentAiAnalyzer _fallbackAnalyzer;
     private readonly IMemoryCache _cache;
@@ -39,13 +41,15 @@ public class LlmIncidentAiAnalyzer : IIncidentAiAnalyzer, ITransientDependency
     };
 
     public LlmIncidentAiAnalyzer(
-        IOptions<GoogleAiOptions> options,
+        IOptions<GoogleAiOptions> fileOptions,
+        IInstanceConfigurationProvider instanceConfiguration,
         IHttpClientFactory httpClientFactory,
         LocalIncidentAiAnalyzer fallbackAnalyzer,
         IMemoryCache cache,
         ILogger<LlmIncidentAiAnalyzer> logger)
     {
-        _options = options.Value;
+        _fileOptions = fileOptions;
+        _instanceConfiguration = instanceConfiguration;
         _httpClientFactory = httpClientFactory;
         _fallbackAnalyzer = fallbackAnalyzer;
         _cache = cache;
@@ -56,6 +60,9 @@ public class LlmIncidentAiAnalyzer : IIncidentAiAnalyzer, ITransientDependency
     {
         var messages = logMessages?.Take(5).ToList() ?? new List<string>();
         if (messages.Count == 0)
+            return await _fallbackAnalyzer.AnalyzeAsync(messages);
+
+        if (!_instanceConfiguration.IsFeatureEnabled(InstanceConfigurationFeatures.AiIncidentAnalysis))
             return await _fallbackAnalyzer.AnalyzeAsync(messages);
 
         var cacheKey = ComputeCacheKey(messages);
@@ -97,9 +104,10 @@ public class LlmIncidentAiAnalyzer : IIncidentAiAnalyzer, ITransientDependency
 
     private bool IsCircuitOpen()
     {
+        var options = EffectiveConfigurationBinder.GetGoogleAi(_instanceConfiguration, _fileOptions);
         lock (_circuitLock)
         {
-            if (_consecutiveFailures < _options.CircuitBreakerFailureThreshold)
+            if (_consecutiveFailures < options.CircuitBreakerFailureThreshold)
                 return false;
             if (DateTime.UtcNow < _circuitOpenUntil)
                 return true;
@@ -115,16 +123,18 @@ public class LlmIncidentAiAnalyzer : IIncidentAiAnalyzer, ITransientDependency
 
     private void OnFailure()
     {
+        var options = EffectiveConfigurationBinder.GetGoogleAi(_instanceConfiguration, _fileOptions);
         lock (_circuitLock)
         {
             _consecutiveFailures++;
-            if (_consecutiveFailures >= _options.CircuitBreakerFailureThreshold)
-                _circuitOpenUntil = DateTime.UtcNow.AddSeconds(_options.CircuitBreakerResetSeconds);
+            if (_consecutiveFailures >= options.CircuitBreakerFailureThreshold)
+                _circuitOpenUntil = DateTime.UtcNow.AddSeconds(options.CircuitBreakerResetSeconds);
         }
     }
 
     private async Task<AiAnalysisResult?> CallLlmAndParseAsync(List<string> messages)
     {
+        var _options = EffectiveConfigurationBinder.GetGoogleAi(_instanceConfiguration, _fileOptions);
         var apiKey = _options.ApiKey?.Trim();
         if (string.IsNullOrEmpty(apiKey))
         {

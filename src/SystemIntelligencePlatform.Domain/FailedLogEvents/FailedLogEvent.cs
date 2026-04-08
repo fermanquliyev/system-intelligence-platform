@@ -1,12 +1,10 @@
 using System;
 using Volo.Abp.Domain.Entities.Auditing;
-using Volo.Abp.MultiTenancy;
 
 namespace SystemIntelligencePlatform.FailedLogEvents;
 
-public class FailedLogEvent : CreationAuditedEntity<Guid>, IMultiTenant
+public class FailedLogEvent : CreationAuditedEntity<Guid>
 {
-    public Guid? TenantId { get; set; }
     public string OriginalMessageBody { get; set; } = null!;
     public string ErrorMessage { get; set; } = null!;
     public string? StackTrace { get; set; }
@@ -21,13 +19,11 @@ public class FailedLogEvent : CreationAuditedEntity<Guid>, IMultiTenant
         string originalMessageBody,
         string errorMessage,
         int deliveryAttempt,
-        Guid? tenantId = null,
         string? correlationId = null,
         string? stackTrace = null,
         string? deadLetterReason = null)
         : base(id)
     {
-        TenantId = tenantId;
         OriginalMessageBody = originalMessageBody;
         ErrorMessage = errorMessage;
         DeliveryAttempt = deliveryAttempt;

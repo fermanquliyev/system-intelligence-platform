@@ -4,9 +4,11 @@
     "AppName": "System Intelligence Platform",
     "Menu:SystemIntelligencePlatform": "System Intelligence",
     "Menu:Home": "Home",
+    "Menu:About": "About",
     "Menu:Dashboard": "Dashboard",
     "Menu:Applications": "Applications",
     "Menu:Incidents": "Incidents",
+    "Menu:InstanceSettings": "Instance settings",
     "Menu:Books": "Books",
     "Actions": "Actions",
     "Close": "Close",
@@ -62,12 +64,15 @@
     "Permission:Incidents.Comment": "Add comments",
     "Permission:Incidents.Search": "Search incidents",
     "Permission:LogEvents": "Log Events",
+    "Permission:InstanceConfiguration": "Instance configuration",
+    "Permission:InstanceConfiguration.Migrate": "Apply database migrations",
     "LongWelcomeMessage": "Welcome to the System Intelligence Platform. Monitor your applications, detect anomalies, and manage incidents with AI-powered insights.",
     "Welcome": "Welcome",
     "SIP:00001": "Invalid API key.",
     "SIP:00002": "Application not found.",
     "SIP:00003": "Incident not found.",
     "SIP:00004": "An application with this name already exists.",
-    "SIP:00005": "API key has already been revoked."
+    "SIP:00005": "API key has already been revoked.",
+    "SIP:00006": "The RabbitMQ log pipeline is disabled in instance settings."
   }
 }

@@ -27,10 +27,10 @@ public class HttpWebhookDispatcher : IWebhookDispatcher, ITransientDependency
         _logger = logger;
     }
 
-    public async Task DispatchIncidentCreatedAsync(Guid? tenantId, WebhookPayload payload)
+    public async Task DispatchIncidentCreatedAsync(WebhookPayload payload)
     {
         var queryable = await _webhookRepository.GetQueryableAsync();
-        var webhooks = queryable.Where(w => w.IsActive && w.TenantId == tenantId).ToList();
+        var webhooks = queryable.Where(w => w.IsActive).ToList();
 
         if (webhooks.Count == 0) return;
 

@@ -31,4 +31,10 @@ public static class SystemIntelligencePlatformPermissions
     {
         public const string Default = GroupName + ".LogEvents";
     }
+
+    public static class InstanceConfiguration
+    {
+        public const string Default = GroupName + ".InstanceConfiguration";
+        public const string Migrate = Default + ".Migrate";
+    }
 }

@@ -20,8 +20,4 @@ export class HomeComponent {
   login() {
     this.authService.navigateToLogin();
   }
-
-  tryDemo() {
-    this.authService.navigateToLogin();
-  }
 }

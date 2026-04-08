@@ -1,181 +1,90 @@
-# System Intelligence Platform — Self-Hosted Error Intelligence for .NET
+# ErrorIntel
 
-> Monitor your .NET applications, detect anomalies in real-time, and get root cause analysis with actionable fix suggestions. **Fully self-hostable and cloud-agnostic.**
+Open-source log analysis and incident detection for teams that want full control of their data. ErrorIntel ingests logs, detects anomalies, optionally enriches incidents with an LLM, and pushes live updates to the browser. It is **single-tenant**, **self-hosted**, and runs entirely on **PostgreSQL**, **RabbitMQ**, **ASP.NET Core**, and **Angular**—no SaaS, no tenant model, and no external cloud services required.
 
-## What It Does
-
-The platform ingests application logs, runs adaptive anomaly detection, enriches incidents with local AI analysis, and delivers real-time notifications. No Azure or other cloud lock-in: everything runs on **PostgreSQL**, **RabbitMQ**, **ASP.NET Core SignalR**, and a **.NET Background Worker**.
+The repository is still named **system-intelligence-platform**; the product name for documentation and users is **ErrorIntel**.
 
 ## Features
 
-- **Adaptive Anomaly Detection** — Spikes, bursts, and critical errors detected using statistical baselines per application
-- **Local AI Analysis** — Deterministic key phrase extraction, root cause summary, and suggested fixes (no external APIs)
-- **Real-Time Dashboard** — Live incident feed via self-hosted SignalR with severity charts and trend analysis
-- **Multi-Tenant Architecture** — Isolated data, API keys, and billing per tenant
-- **Webhook Notifications** — HTTP callbacks to Slack, Teams, or any endpoint when incidents occur
-- **Full-Text Search** — Search incidents by title, description, and root cause (PostgreSQL, no external search engine)
-- **API-First** — REST API for log ingestion with API key authentication
-- **OpenTelemetry** — Distributed tracing, metrics, and structured logging (Console exporter by default; Prometheus can be added)
+- **Log ingestion** — API key–authenticated HTTP endpoint; events are queued for async processing.
+- **Incident detection** — Adaptive anomaly detection from recent log patterns.
+- **AI-powered analysis** — `LlmIncidentAiAnalyzer` (Google Gemini-compatible API) with automatic fallback to `LocalIncidentAiAnalyzer` when no API key is set or the call fails.
+- **Real-time updates** — SignalR broadcasts to all connected, authenticated clients.
+- **Self-hosted** — One `docker-compose up` stack: Postgres, RabbitMQ, API, worker, Angular.
 
-## Architecture Flow
+## Quick start
+
+1. **Clone** this repository.
+
+2. **Configure AI (optional)**  
+   Copy `.env.example` to `.env` in the repo root and set your key:
+
+   ```env
+   AI__ApiKey=your-google-ai-studio-key
+   ```
+
+   Docker Compose reads `.env` for variable substitution. If `AI__ApiKey` is empty, the system still runs using the local analyzer only.
+
+3. **Run the stack**
+
+   ```bash
+   docker-compose up --build
+   ```
+
+4. **Open the app**  
+   - UI: [http://localhost:4200](http://localhost:4200)  
+   - API / OpenIddict: [http://localhost:44397](http://localhost:44397)  
+   - RabbitMQ management: [http://localhost:15672](http://localhost:15672) (guest / guest)
+
+5. **Sign in**  
+   Default admin user is seeded by ABP (see `SystemIntelligencePlatformConsts` for email/password defaults in development).
+
+## Architecture
 
 ```
-Angular → API (HttpApi.Host) → RabbitMQ (log-ingestion)
-                                    ↓
-                    BackgroundWorker consumes queue
-                                    ↓
-                    Incident detection + Local AI + PostgreSQL
-                                    ↓
+Angular → API → RabbitMQ (log-ingestion) → Worker → PostgreSQL
+                              ↓
                     RabbitMQ (incident-notifications)
-                                    ↓
-                    API consumes → SignalR → Angular clients
+                              ↓
+                         API → SignalR → Angular
 ```
 
-- **Database**: PostgreSQL (EF Core + Npgsql). No changes to DbContext, repositories, or migrations.
-- **Message queue**: RabbitMQ (durable queue `log-ingestion`). JSON serialization, retry and reconnection.
-- **Background processing**: `SystemIntelligencePlatform.BackgroundWorker` (HostedService) instead of Azure Functions.
-- **Search**: `DatabaseIncidentSearchService` — EF Core queries with ILIKE; tenant filtering, pagination, sort by timestamp.
-- **Realtime**: Self-hosted ASP.NET Core SignalR (`IncidentHub`); no Azure SignalR.
-- **Secrets**: appsettings.json and environment variables only (no Azure Key Vault).
-- **Telemetry**: OpenTelemetry (tracing, metrics); Application Insights removed.
-
-## Tech Stack
-
-- **Backend**: ABP.io Framework (.NET 10, EF Core)
-- **Frontend**: Angular with ABP UI
-- **Database**: PostgreSQL 16
-- **Messaging**: RabbitMQ 3 (with management UI on 15672)
-- **Processing**: .NET Worker Service (BackgroundWorker)
-- **AI**: Local deterministic analyzer (pure C#)
-- **Search**: PostgreSQL full-text (EF Core)
-- **Real-Time**: ASP.NET Core SignalR
-- **Auth**: OpenIddict (OAuth 2.0 / OIDC)
-
-## Prerequisites
-
-- **.NET SDK** (10 or later)
-- **Node.js** and **npm** (for the Angular app)
-- **Docker** and **Docker Compose** (for the full-stack Docker setup)
-- **ABP CLI** — required for the Angular app to talk to the ABP backend (auth, API client, OpenID discovery). Install once, then run `abp install-libs` from the repo root before first run or after cloning:
-
-```bash
-# Install ABP CLI globally
-dotnet tool install -g Volo.Abp.Cli
-
-# From the repository root: install/update ABP client libraries (Angular, etc.)
-abp install-libs
-```
-
-Run `abp install-libs` after cloning the repo and whenever ABP client packages are updated. Without it, the Angular app may fail with CORS or "error loading discovery document" when calling the API.
-
-## Quick Start (Local with Docker Compose)
-
-### 1. Start infrastructure
-
-```bash
-docker-compose up -d postgres rabbitmq
-```
-
-- **PostgreSQL**: `localhost:5432` (user `postgres`, password `postgres`, database `sip`)
-- **RabbitMQ**: AMQP `localhost:5672`, Management UI `http://localhost:15672` (guest/guest)
-
-### 2. Run database migrations
-
-```bash
-cd src/SystemIntelligencePlatform.DbMigrator
-dotnet run
-```
-
-### 3. Start the API
-
-```bash
-cd src/SystemIntelligencePlatform.HttpApi.Host
-dotnet run
-```
-
-API runs at `https://localhost:44397` (or the port in `appsettings.json`).
-
-### 4. Start the Background Worker
-
-```bash
-cd src/SystemIntelligencePlatform.BackgroundWorker
-dotnet run
-```
-
-### 5. Start the Angular application
-
-```bash
-cd angular
-npm install
-npm start
-```
-
-Angular at `http://localhost:4200`. If you haven't already, run **`abp install-libs`** from the repo root once (see [Prerequisites](#prerequisites)).
-
-## Running the Full Stack with Docker Compose
-
-From the repository root, ensure you've run **`abp install-libs`** at least once (see [Prerequisites](#prerequisites)), then:
-
-```bash
-docker-compose up --build
-```
-
-This starts:
-
-- **postgres** — PostgreSQL 16 on 5432
-- **rabbitmq** — RabbitMQ with management on 5672 and 15672
-- **api** — ASP.NET Core API (port 44397 → 8080)
-- **worker** — Background worker (consumes `log-ingestion`, publishes to `incident-notifications`)
-- **angular** — Angular app served by nginx (port 4200 → 80)
-
-Run migrations before or after `docker-compose up` (e.g. run DbMigrator once against the `postgres` service or a local PostgreSQL instance using the same connection string).
+- **API** (`SystemIntelligencePlatform.HttpApi.Host`) — REST, OpenIddict, SignalR hub, optional RabbitMQ consumer for incident notifications.
+- **Worker** (`SystemIntelligencePlatform.BackgroundWorker`) — Consumes log messages, persists events, runs detection and AI, publishes incident notifications.
+- **Database** — EF Core + PostgreSQL; search uses `DatabaseIncidentSearchService` (SQL `ILIKE`, no Elasticsearch).
 
 ## Configuration
 
-Use `appsettings.json` and/or environment variables. No Azure sections.
+| Area | Setting | Notes |
+|------|---------|--------|
+| AI | `AI:Provider`, `AI:ApiKey`, `AI:Model` | Bound to `GoogleAiOptions`; worker and API use the same shape. |
+| Data retention | `DataRetention:LogRetentionDays` | Background job deletes old `LogEvent` rows (default 90). |
+| Queue | `RabbitMQ:*` | Host, port, credentials, virtual host. |
 
-**API (HttpApi.Host)** — Example:
+Override with environment variables (e.g. `AI__ApiKey`, `DataRetention__LogRetentionDays`) or a `.env` file for Docker Compose.
 
-```json
-{
-  "ConnectionStrings": {
-    "Default": "Host=localhost;Port=5432;Database=sip;Username=postgres;Password=postgres"
-  },
-  "RabbitMQ": {
-    "Host": "localhost",
-    "Port": 5672,
-    "Username": "guest",
-    "Password": "guest",
-    "VirtualHost": "/"
-  },
-  "Search": { "Provider": "Database" },
-  "OpenTelemetry": { "Enabled": true }
-}
-```
+## Customization
 
-**Worker (BackgroundWorker)** — Same `ConnectionStrings:Default` and `RabbitMQ` section.
+- **Replace the AI provider** — Implement `IIncidentAiAnalyzer` or adapt `LlmIncidentAiAnalyzer` / `ServiceCollectionExtensions.AddLlmIncidentAiAnalyzer` for another HTTP API; keep `LocalIncidentAiAnalyzer` as fallback.
+- **Tune detection** — `AnomalyDetectionService` in the domain/application layer defines thresholds and rules.
+- **Extend the model** — Add entities under `Domain`, register in `SystemIntelligencePlatformDbContext`, expose via application services and Angular as usual for ABP.
 
-Secrets (e.g. Stripe, auth) can be overridden via environment variables or additional config files.
+## Local development (without Docker)
+
+- Restore NuGet packages, set `ConnectionStrings:Default` and RabbitMQ in `appsettings.Development.json`.
+- Run the DbMigrator or apply EF migrations to PostgreSQL.
+- Start `HttpApi.Host`, `BackgroundWorker`, and `ng serve` for the Angular app.
+
+## License and contributions
+
+Treat this as an open-source, self-hosted project: fork, run on your infrastructure, and adjust to your policies. Pull requests and issues are welcome.
 
 ## Tests
 
-All tests run without any external cloud services:
-
 ```bash
-dotnet test SystemIntelligencePlatform.slnx
+dotnet test
 ```
 
-- **Domain / Application / EntityFrameworkCore** — Existing tests unchanged
-- **Infrastructure.Tests** — Local AI analyzer (deterministic), database search (with in-memory SQLite in tests), and related behavior
+---
 
-## Success Criteria (Met)
-
-- Solution builds successfully
-- All tests pass
-- No Azure packages or configuration in the codebase
-- System runs locally with `docker-compose up` using PostgreSQL, RabbitMQ, SignalR, and the Background Worker
-- Database layer remains PostgreSQL with EF Core + Npgsql; DDD and business logic unchanged
-
-## License
-
-Proprietary. Copyright © 2026.
+**Summary:** ErrorIntel is a production-style, readable codebase focused on one deployment per installation—no multi-tenancy, no subscriptions, and minimal moving parts beyond Postgres, RabbitMQ, and your optional LLM API key.

@@ -16,14 +16,12 @@ using OpenIddict.Server.AspNetCore;
 using SystemIntelligencePlatform.EntityFrameworkCore;
 using SystemIntelligencePlatform.Infrastructure;
 using SystemIntelligencePlatform.Realtime;
-using SystemIntelligencePlatform.MultiTenancy;
 using SystemIntelligencePlatform.HealthChecks;
 using Microsoft.OpenApi;
 using Volo.Abp;
 using Volo.Abp.Studio;
 using Volo.Abp.Account;
 using Volo.Abp.Account.Web;
-using Volo.Abp.AspNetCore.MultiTenancy;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.Autofac;
 using Volo.Abp.Localization;
@@ -49,7 +47,6 @@ namespace SystemIntelligencePlatform;
     typeof(AbpStudioClientAspNetCoreModule),
     typeof(AbpAspNetCoreMvcUiLeptonXLiteThemeModule),
     typeof(AbpAutofacModule),
-    typeof(AbpAspNetCoreMultiTenancyModule),
     typeof(SystemIntelligencePlatformApplicationModule),
     typeof(SystemIntelligencePlatformEntityFrameworkCoreModule),
     typeof(AbpAccountWebOpenIddictModule),
@@ -313,11 +310,6 @@ public class SystemIntelligencePlatformHttpApiHostModule : AbpModule
         app.UseAbpSecurityHeaders();
         app.UseAuthentication();
         app.UseAbpOpenIddictValidation();
-
-        if (MultiTenancyConsts.IsEnabled)
-        {
-            app.UseMultiTenancy();
-        }
 
         app.UseUnitOfWork();
         app.UseDynamicClaims();

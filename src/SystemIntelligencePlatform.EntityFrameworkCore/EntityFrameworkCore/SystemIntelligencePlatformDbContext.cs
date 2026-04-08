@@ -4,8 +4,8 @@ using SystemIntelligencePlatform.FailedLogEvents;
 using SystemIntelligencePlatform.Incidents;
 using SystemIntelligencePlatform.LogEvents;
 using SystemIntelligencePlatform.MonitoredApplications;
-using SystemIntelligencePlatform.Subscriptions;
 using SystemIntelligencePlatform.Webhooks;
+using SystemIntelligencePlatform.InstanceConfiguration;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.BlobStoring.Database.EntityFrameworkCore;
 using Volo.Abp.Data;
@@ -18,17 +18,13 @@ using Volo.Abp.Identity.EntityFrameworkCore;
 using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.OpenIddict.EntityFrameworkCore;
-using Volo.Abp.TenantManagement;
-using Volo.Abp.TenantManagement.EntityFrameworkCore;
 
 namespace SystemIntelligencePlatform.EntityFrameworkCore;
 
 [ReplaceDbContext(typeof(IIdentityDbContext))]
-[ReplaceDbContext(typeof(ITenantManagementDbContext))]
 [ConnectionStringName("Default")]
 public class SystemIntelligencePlatformDbContext :
     AbpDbContext<SystemIntelligencePlatformDbContext>,
-    ITenantManagementDbContext,
     IIdentityDbContext
 {
     public DbSet<MonitoredApplication> MonitoredApplications { get; set; }
@@ -36,13 +32,12 @@ public class SystemIntelligencePlatformDbContext :
     public DbSet<Incident> Incidents { get; set; }
     public DbSet<IncidentComment> IncidentComments { get; set; }
     public DbSet<FailedLogEvent> FailedLogEvents { get; set; }
-    public DbSet<Subscription> Subscriptions { get; set; }
-    public DbSet<MonthlyUsage> MonthlyUsages { get; set; }
     public DbSet<WebhookRegistration> WebhookRegistrations { get; set; }
+    public DbSet<InstanceFeature> InstanceFeatures { get; set; }
+    public DbSet<InstanceSetting> InstanceSettings { get; set; }
 
     #region Entities from the modules
 
-    // Identity
     public DbSet<IdentityUser> Users { get; set; }
     public DbSet<IdentityRole> Roles { get; set; }
     public DbSet<IdentityClaimType> ClaimTypes { get; set; }
@@ -51,10 +46,6 @@ public class SystemIntelligencePlatformDbContext :
     public DbSet<IdentityLinkUser> LinkUsers { get; set; }
     public DbSet<IdentityUserDelegation> UserDelegations { get; set; }
     public DbSet<IdentitySession> Sessions { get; set; }
-
-    // Tenant Management
-    public DbSet<Tenant> Tenants { get; set; }
-    public DbSet<TenantConnectionString> TenantConnectionStrings { get; set; }
 
     #endregion
 
@@ -74,7 +65,6 @@ public class SystemIntelligencePlatformDbContext :
         builder.ConfigureFeatureManagement();
         builder.ConfigureIdentity();
         builder.ConfigureOpenIddict();
-        builder.ConfigureTenantManagement();
         builder.ConfigureBlobStoring();
 
         builder.Entity<MonitoredApplication>(b =>
@@ -89,7 +79,7 @@ public class SystemIntelligencePlatformDbContext :
             b.Property(x => x.ApiKeyHash).IsRequired().HasMaxLength(MonitoredApplicationConsts.ApiKeyHashLength);
 
             b.HasIndex(x => x.ApiKeyHash).IsUnique();
-            b.HasIndex(x => new { x.TenantId, x.Name }).IsUnique();
+            b.HasIndex(x => x.Name).IsUnique();
             b.HasIndex(x => x.IsActive);
         });
 
@@ -109,7 +99,6 @@ public class SystemIntelligencePlatformDbContext :
             b.HasIndex(x => new { x.ApplicationId, x.HashSignature, x.Timestamp });
             b.HasIndex(x => x.Timestamp);
             b.HasIndex(x => x.IncidentId);
-            b.HasIndex(x => x.TenantId);
         });
 
         builder.Entity<Incident>(b =>
@@ -131,7 +120,6 @@ public class SystemIntelligencePlatformDbContext :
             b.HasIndex(x => x.Status);
             b.HasIndex(x => x.Severity);
             b.HasIndex(x => x.LastOccurrence);
-            b.HasIndex(x => x.TenantId);
 
             b.HasMany(x => x.Comments).WithOne().HasForeignKey(x => x.IncidentId);
         });
@@ -158,30 +146,7 @@ public class SystemIntelligencePlatformDbContext :
             b.Property(x => x.StackTrace).HasMaxLength(FailedLogEventConsts.MaxStackTraceLength);
             b.Property(x => x.CorrelationId).HasMaxLength(64);
 
-            b.HasIndex(x => x.TenantId);
             b.HasIndex(x => x.CreationTime);
-        });
-
-        builder.Entity<Subscription>(b =>
-        {
-            b.ToTable(SystemIntelligencePlatformConsts.DbTablePrefix + "Subscriptions",
-                SystemIntelligencePlatformConsts.DbSchema);
-            b.ConfigureByConvention();
-
-            b.Property(x => x.StripeCustomerId).HasMaxLength(SubscriptionConsts.MaxStripeCustomerIdLength);
-            b.Property(x => x.StripeSubscriptionId).HasMaxLength(SubscriptionConsts.MaxStripeSubscriptionIdLength);
-
-            b.HasIndex(x => x.TenantId).IsUnique();
-            b.HasIndex(x => x.StripeSubscriptionId).IsUnique().HasFilter("\"StripeSubscriptionId\" IS NOT NULL");
-        });
-
-        builder.Entity<MonthlyUsage>(b =>
-        {
-            b.ToTable(SystemIntelligencePlatformConsts.DbTablePrefix + "MonthlyUsages",
-                SystemIntelligencePlatformConsts.DbSchema);
-            b.ConfigureByConvention();
-
-            b.HasIndex(x => new { x.TenantId, x.Month }).IsUnique();
         });
 
         builder.Entity<WebhookRegistration>(b =>
@@ -192,8 +157,27 @@ public class SystemIntelligencePlatformDbContext :
 
             b.Property(x => x.Url).IsRequired().HasMaxLength(WebhookConsts.MaxUrlLength);
             b.Property(x => x.Secret).HasMaxLength(WebhookConsts.MaxSecretLength);
+        });
 
-            b.HasIndex(x => x.TenantId);
+        builder.Entity<InstanceFeature>(b =>
+        {
+            b.ToTable(SystemIntelligencePlatformConsts.DbTablePrefix + "InstanceFeatures",
+                SystemIntelligencePlatformConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Name).IsRequired().HasMaxLength(128);
+            b.Property(x => x.DisplayName).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Description).HasMaxLength(2000);
+            b.HasIndex(x => x.Name).IsUnique();
+        });
+
+        builder.Entity<InstanceSetting>(b =>
+        {
+            b.ToTable(SystemIntelligencePlatformConsts.DbTablePrefix + "InstanceSettings",
+                SystemIntelligencePlatformConsts.DbSchema);
+            b.ConfigureByConvention();
+            b.Property(x => x.Key).IsRequired().HasMaxLength(256);
+            b.Property(x => x.Value).HasMaxLength(8000);
+            b.HasIndex(x => x.Key).IsUnique();
         });
     }
 }

@@ -117,8 +117,7 @@ public class IncidentAppService : ApplicationService, IIncidentAppService
         var comment = new IncidentComment(
             GuidGenerator.Create(),
             incidentId,
-            input.Content,
-            CurrentTenant.Id
+            input.Content
         );
 
         await _commentRepository.InsertAsync(comment);
@@ -144,7 +143,7 @@ public class IncidentAppService : ApplicationService, IIncidentAppService
     [Authorize(SystemIntelligencePlatformPermissions.Incidents.Search)]
     public async Task<IncidentSearchResultDto> SearchAsync(IncidentSearchRequestDto input)
     {
-        var result = await _searchService.SearchAsync(input.Query, CurrentTenant.Id, input.Skip, input.Take);
+        var result = await _searchService.SearchAsync(input.Query, input.Skip, input.Take);
 
         return new IncidentSearchResultDto
         {

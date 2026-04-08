@@ -5,7 +5,7 @@ namespace SystemIntelligencePlatform.Webhooks;
 
 public interface IWebhookDispatcher
 {
-    Task DispatchIncidentCreatedAsync(Guid? tenantId, WebhookPayload payload);
+    Task DispatchIncidentCreatedAsync(WebhookPayload payload);
 }
 
 public class WebhookPayload

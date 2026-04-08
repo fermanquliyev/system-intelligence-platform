@@ -1,12 +1,10 @@
 using System;
 using Volo.Abp.Domain.Entities;
-using Volo.Abp.MultiTenancy;
 
 namespace SystemIntelligencePlatform.LogEvents;
 
-public class LogEvent : BasicAggregateRoot<Guid>, IMultiTenant
+public class LogEvent : BasicAggregateRoot<Guid>
 {
-    public Guid? TenantId { get; set; }
     public Guid ApplicationId { get; set; }
     public LogLevel Level { get; set; }
     public string Message { get; set; } = null!;
@@ -26,11 +24,9 @@ public class LogEvent : BasicAggregateRoot<Guid>, IMultiTenant
         LogLevel level,
         string message,
         string hashSignature,
-        DateTime timestamp,
-        Guid? tenantId = null)
+        DateTime timestamp)
         : base(id)
     {
-        TenantId = tenantId;
         ApplicationId = applicationId;
         Level = level;
         Message = message;

@@ -5,19 +5,16 @@ namespace SystemIntelligencePlatform.LogEvents;
 
 /// <summary>
 /// Observability helpers for structured logging and distributed tracing.
-/// All log events carry TenantId, ApplicationId, HashSignature, and CorrelationId
-/// as structured properties for filtering in Application Insights.
 /// </summary>
 public static class LogEventTelemetry
 {
     public static readonly ActivitySource ActivitySource = new("SystemIntelligencePlatform");
 
-    public static Activity? StartIngestionActivity(string correlationId, Guid applicationId, Guid? tenantId)
+    public static Activity? StartIngestionActivity(string correlationId, Guid applicationId)
     {
         var activity = ActivitySource.StartActivity("LogIngestion");
         activity?.SetTag("correlationId", correlationId);
         activity?.SetTag("applicationId", applicationId.ToString());
-        activity?.SetTag("tenantId", tenantId?.ToString() ?? "host");
         return activity;
     }
 

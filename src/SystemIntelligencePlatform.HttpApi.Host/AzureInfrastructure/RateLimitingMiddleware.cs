@@ -1,14 +1,13 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using SystemIntelligencePlatform.InstanceConfiguration;
 using SystemIntelligencePlatform.RateLimiting;
-using Volo.Abp.MultiTenancy;
 
 namespace SystemIntelligencePlatform.RateLimiting;
 
 /// <summary>
-/// Middleware that enforces per-tenant rate limiting on the ingestion endpoint.
-/// Returns 429 Too Many Requests with Retry-After header when limit is exceeded.
+/// Rate limiting for the public log ingestion endpoint.
 /// </summary>
 public class RateLimitingMiddleware
 {
@@ -19,7 +18,10 @@ public class RateLimitingMiddleware
         _next = next;
     }
 
-    public async Task InvokeAsync(HttpContext context, IRateLimiter rateLimiter, ICurrentTenant currentTenant)
+    public async Task InvokeAsync(
+        HttpContext context,
+        IRateLimiter rateLimiter,
+        IInstanceConfigurationProvider instanceConfiguration)
     {
         if (!context.Request.Path.StartsWithSegments("/api/ingest"))
         {
@@ -27,8 +29,13 @@ public class RateLimitingMiddleware
             return;
         }
 
-        var tenantId = currentTenant.Id ?? Guid.Empty;
-        var result = await rateLimiter.CheckAsync(tenantId, "log-ingestion");
+        if (!instanceConfiguration.IsFeatureEnabled(InstanceConfigurationFeatures.ApiRateLimiting))
+        {
+            await _next(context);
+            return;
+        }
+
+        var result = await rateLimiter.CheckAsync(Guid.Empty, "log-ingestion");
 
         context.Response.Headers["X-RateLimit-Limit"] = result.Limit.ToString();
         context.Response.Headers["X-RateLimit-Remaining"] = Math.Max(0, result.Limit - result.CurrentCount).ToString();

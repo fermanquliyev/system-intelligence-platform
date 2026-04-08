@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Volo.Abp.Domain.Entities.Auditing;
-using Volo.Abp.MultiTenancy;
 
 namespace SystemIntelligencePlatform.Incidents;
 
-public class Incident : FullAuditedAggregateRoot<Guid>, IMultiTenant
+public class Incident : FullAuditedAggregateRoot<Guid>
 {
-    public Guid? TenantId { get; set; }
     public Guid ApplicationId { get; set; }
     public string Title { get; set; } = null!;
     public string? Description { get; set; }
@@ -41,11 +39,9 @@ public class Incident : FullAuditedAggregateRoot<Guid>, IMultiTenant
         string title,
         string hashSignature,
         IncidentSeverity severity,
-        DateTime firstOccurrence,
-        Guid? tenantId = null)
+        DateTime firstOccurrence)
         : base(id)
     {
-        TenantId = tenantId;
         ApplicationId = applicationId;
         Title = title;
         HashSignature = hashSignature;

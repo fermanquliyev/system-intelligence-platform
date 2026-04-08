@@ -9,51 +9,64 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using SystemIntelligencePlatform.InstanceConfiguration;
 using SystemIntelligencePlatform.Incidents;
 using SystemIntelligencePlatform.Realtime;
 
 namespace SystemIntelligencePlatform.Infrastructure;
 
 /// <summary>
-/// Consumes incident notification messages from RabbitMQ and pushes them via self-hosted SignalR.
+/// Consumes incident notification messages from RabbitMQ and pushes them via SignalR.
 /// </summary>
 public class IncidentNotificationConsumerService : BackgroundService
 {
     public const string QueueName = "incident-notifications";
 
-    private readonly RabbitMqOptions _options;
+    private readonly IOptions<RabbitMqOptions> _fileOptions;
+    private readonly IInstanceConfigurationProvider _instanceConfiguration;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<IncidentNotificationConsumerService> _logger;
     private IConnection? _connection;
     private IModel? _channel;
 
     public IncidentNotificationConsumerService(
-        IOptions<RabbitMqOptions> options,
+        IOptions<RabbitMqOptions> fileOptions,
+        IInstanceConfigurationProvider instanceConfiguration,
         IServiceScopeFactory scopeFactory,
         ILogger<IncidentNotificationConsumerService> logger)
     {
-        _options = options.Value;
+        _fileOptions = fileOptions;
+        _instanceConfiguration = instanceConfiguration;
         _scopeFactory = scopeFactory;
         _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var factory = new ConnectionFactory
-        {
-            HostName = _options.Host,
-            Port = _options.Port,
-            UserName = _options.Username,
-            Password = _options.Password,
-            VirtualHost = string.IsNullOrEmpty(_options.VirtualHost) ? "/" : _options.VirtualHost,
-            AutomaticRecoveryEnabled = true,
-            DispatchConsumersAsync = true
-        };
-
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
+                var opts = EffectiveConfigurationBinder.GetRabbitMq(_instanceConfiguration, _fileOptions);
+                if (!_instanceConfiguration.IsFeatureEnabled(InstanceConfigurationFeatures.RabbitMqMessaging)
+                    || string.IsNullOrWhiteSpace(opts.Host))
+                {
+                    _logger.LogInformation("Incident notification consumer idle (RabbitMQ disabled or host not set).");
+                    await Task.Delay(10000, stoppingToken);
+                    continue;
+                }
+
+                var factory = new ConnectionFactory
+                {
+                    HostName = opts.Host,
+                    Port = opts.Port,
+                    UserName = opts.Username,
+                    Password = opts.Password,
+                    VirtualHost = string.IsNullOrEmpty(opts.VirtualHost) ? "/" : opts.VirtualHost,
+                    AutomaticRecoveryEnabled = true,
+                    DispatchConsumersAsync = true
+                };
+
                 _connection = factory.CreateConnection();
                 _channel = _connection.CreateModel();
                 _channel.QueueDeclare(QueueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
@@ -99,13 +112,6 @@ public class IncidentNotificationConsumerService : BackgroundService
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
         var eventType = root.GetProperty("EventType").GetString();
-        Guid? tenantId = null;
-        if (root.TryGetProperty("TenantId", out var tidEl) && tidEl.ValueKind == JsonValueKind.String)
-        {
-            var tidStr = tidEl.GetString();
-            if (!string.IsNullOrEmpty(tidStr) && Guid.TryParse(tidStr, out var tid))
-                tenantId = tid;
-        }
         var notificationEl = root.GetProperty("Notification");
         var notification = JsonSerializer.Deserialize<IncidentNotification>(notificationEl.GetRawText());
         if (notification == null)
@@ -120,13 +126,13 @@ public class IncidentNotificationConsumerService : BackgroundService
         switch (eventType)
         {
             case "IncidentCreated":
-                await notifier.NotifyIncidentCreatedAsync(tenantId, notification);
+                await notifier.NotifyIncidentCreatedAsync(notification);
                 break;
             case "IncidentUpdated":
-                await notifier.NotifyIncidentUpdatedAsync(tenantId, notification);
+                await notifier.NotifyIncidentUpdatedAsync(notification);
                 break;
             case "IncidentResolved":
-                await notifier.NotifyIncidentResolvedAsync(tenantId, notification);
+                await notifier.NotifyIncidentResolvedAsync(notification);
                 break;
             default:
                 _logger.LogWarning("Unknown incident event type: {EventType}", eventType);

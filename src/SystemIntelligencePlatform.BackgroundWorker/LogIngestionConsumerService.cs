@@ -14,6 +14,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using SystemIntelligencePlatform.EntityFrameworkCore;
 using SystemIntelligencePlatform.Incidents;
+using SystemIntelligencePlatform.InstanceConfiguration;
 using SystemIntelligencePlatform.LogEvents;
 
 namespace SystemIntelligencePlatform.BackgroundWorker;
@@ -23,41 +24,61 @@ public class LogIngestionConsumerService : BackgroundService
     public const string LogIngestionQueueName = "log-ingestion";
     public const string IncidentNotificationsQueueName = "incident-notifications";
 
-    private readonly RabbitMqWorkerOptions _options;
+    private readonly IOptions<RabbitMqWorkerOptions> _fileOptions;
+    private readonly WorkerInstanceConfigurationProvider _runtimeConfiguration;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<LogIngestionConsumerService> _logger;
     private IConnection? _connection;
     private IModel? _channel;
 
     public LogIngestionConsumerService(
-        IOptions<RabbitMqWorkerOptions> options,
+        IOptions<RabbitMqWorkerOptions> fileOptions,
+        WorkerInstanceConfigurationProvider runtimeConfiguration,
         IServiceProvider serviceProvider,
         ILogger<LogIngestionConsumerService> logger)
     {
-        _options = options.Value;
+        _fileOptions = fileOptions;
+        _runtimeConfiguration = runtimeConfiguration;
         _serviceProvider = serviceProvider;
         _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        var factory = new ConnectionFactory
-        {
-            HostName = _options.Host,
-            Port = _options.Port,
-            UserName = _options.Username,
-            Password = _options.Password,
-            VirtualHost = string.IsNullOrEmpty(_options.VirtualHost) ? "/" : _options.VirtualHost,
-            AutomaticRecoveryEnabled = true,
-            NetworkRecoveryInterval = TimeSpan.FromSeconds(10),
-            RequestedHeartbeat = TimeSpan.FromSeconds(60),
-            DispatchConsumersAsync = true
-        };
-
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
+                await _runtimeConfiguration.EnsureSnapshotAsync(stoppingToken);
+
+                if (!_runtimeConfiguration.IsFeatureEnabled(InstanceConfigurationFeatures.RabbitMqMessaging))
+                {
+                    _logger.LogInformation("Log ingestion consumer idle (RabbitMQ messaging disabled).");
+                    await Task.Delay(10000, stoppingToken);
+                    continue;
+                }
+
+                var options = WorkerEffectiveConfiguration.GetRabbitMq(_runtimeConfiguration, _fileOptions.Value);
+                if (string.IsNullOrWhiteSpace(options.Host))
+                {
+                    _logger.LogInformation("Log ingestion consumer idle (RabbitMQ host not configured).");
+                    await Task.Delay(10000, stoppingToken);
+                    continue;
+                }
+
+                var factory = new ConnectionFactory
+                {
+                    HostName = options.Host,
+                    Port = options.Port,
+                    UserName = options.Username,
+                    Password = options.Password,
+                    VirtualHost = string.IsNullOrEmpty(options.VirtualHost) ? "/" : options.VirtualHost,
+                    AutomaticRecoveryEnabled = true,
+                    NetworkRecoveryInterval = TimeSpan.FromSeconds(10),
+                    RequestedHeartbeat = TimeSpan.FromSeconds(60),
+                    DispatchConsumersAsync = true
+                };
+
                 _connection = factory.CreateConnection();
                 _channel = _connection.CreateModel();
                 _channel.QueueDeclare(LogIngestionQueueName, durable: true, exclusive: false, autoDelete: false, arguments: null);
@@ -132,8 +153,7 @@ public class LogIngestionConsumerService : BackgroundService
             logEventMessage.Level,
             logEventMessage.Message,
             hashSignature,
-            logEventMessage.Timestamp,
-            logEventMessage.TenantId)
+            logEventMessage.Timestamp)
         {
             Source = logEventMessage.Source,
             ExceptionType = logEventMessage.ExceptionType,
@@ -208,8 +228,7 @@ public class LogIngestionConsumerService : BackgroundService
                 TruncateTitle(logEventMessage.Message),
                 hashSignature,
                 anomalyResult.SuggestedSeverity,
-                logEventMessage.Timestamp,
-                logEventMessage.TenantId)
+                logEventMessage.Timestamp)
             {
                 Description = logEventMessage.StackTrace ?? logEventMessage.Message,
                 OccurrenceCount = metrics.EventsLast1Hour
@@ -250,19 +269,19 @@ public class LogIngestionConsumerService : BackgroundService
             Timestamp = incident.LastOccurrence
         };
 
-        PublishNotification(isNew ? "IncidentCreated" : "IncidentUpdated", incident.TenantId, notification);
+        PublishNotification(isNew ? "IncidentCreated" : "IncidentUpdated", notification);
 
         _logger.LogInformation("Incident {IncidentId} processed: isNew={IsNew}, severity={Severity}",
             incident.Id, isNew, incident.Severity);
         Ack(deliveryTag);
     }
 
-    private void PublishNotification(string eventType, Guid? tenantId, IncidentNotification notification)
+    private void PublishNotification(string eventType, IncidentNotification notification)
     {
         if (_channel?.IsOpen != true) return;
         try
         {
-            var payload = JsonSerializer.Serialize(new { EventType = eventType, TenantId = tenantId, Notification = notification });
+            var payload = JsonSerializer.Serialize(new { EventType = eventType, Notification = notification });
             var body = Encoding.UTF8.GetBytes(payload);
             var props = _channel.CreateBasicProperties();
             props.ContentType = "application/json";

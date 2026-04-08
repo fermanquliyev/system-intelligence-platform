@@ -47,7 +47,7 @@ public class MonitoredApplicationAppService : ApplicationService, IMonitoredAppl
     [Authorize(SystemIntelligencePlatformPermissions.Applications.Create)]
     public async Task<ApiKeyResultDto> CreateAsync(CreateMonitoredApplicationDto input)
     {
-        var existing = await _repository.FindByNameAsync(input.Name, CurrentTenant.Id);
+        var existing = await _repository.FindByNameAsync(input.Name);
         if (existing != null)
         {
             throw new BusinessException(SystemIntelligencePlatformDomainErrorCodes.DuplicateApplicationName);
@@ -60,7 +60,6 @@ public class MonitoredApplicationAppService : ApplicationService, IMonitoredAppl
             GuidGenerator.Create(),
             input.Name,
             apiKeyHash,
-            CurrentTenant.Id,
             input.Description,
             input.Environment
         );

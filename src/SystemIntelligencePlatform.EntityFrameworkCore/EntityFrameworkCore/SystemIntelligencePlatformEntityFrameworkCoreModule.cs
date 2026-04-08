@@ -13,8 +13,6 @@ using Volo.Abp.OpenIddict.EntityFrameworkCore;
 using Volo.Abp.PermissionManagement.EntityFrameworkCore;
 using Volo.Abp.SettingManagement.EntityFrameworkCore;
 using Volo.Abp.Studio;
-using Volo.Abp.TenantManagement.EntityFrameworkCore;
-
 namespace SystemIntelligencePlatform.EntityFrameworkCore;
 
 [DependsOn(
@@ -27,7 +25,6 @@ namespace SystemIntelligencePlatform.EntityFrameworkCore;
     typeof(AbpFeatureManagementEntityFrameworkCoreModule),
     typeof(AbpIdentityEntityFrameworkCoreModule),
     typeof(AbpOpenIddictEntityFrameworkCoreModule),
-    typeof(AbpTenantManagementEntityFrameworkCoreModule),
     typeof(BlobStoringDatabaseEntityFrameworkCoreModule)
     )]
 public class SystemIntelligencePlatformEntityFrameworkCoreModule : AbpModule

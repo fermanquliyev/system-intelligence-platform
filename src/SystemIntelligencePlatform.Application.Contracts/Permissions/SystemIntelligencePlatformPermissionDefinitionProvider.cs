@@ -26,6 +26,9 @@ public class SystemIntelligencePlatformPermissionDefinitionProvider : Permission
         incidentsPermission.AddChild(SystemIntelligencePlatformPermissions.Incidents.Search, L("Permission:Incidents.Search"));
 
         myGroup.AddPermission(SystemIntelligencePlatformPermissions.LogEvents.Default, L("Permission:LogEvents"));
+
+        var instanceCfg = myGroup.AddPermission(SystemIntelligencePlatformPermissions.InstanceConfiguration.Default, L("Permission:InstanceConfiguration"));
+        instanceCfg.AddChild(SystemIntelligencePlatformPermissions.InstanceConfiguration.Migrate, L("Permission:InstanceConfiguration.Migrate"));
     }
 
     private static LocalizableString L(string name)

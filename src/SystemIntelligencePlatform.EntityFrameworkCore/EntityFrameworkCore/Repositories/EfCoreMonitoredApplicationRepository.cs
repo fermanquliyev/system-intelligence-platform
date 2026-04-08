@@ -29,11 +29,11 @@ public class EfCoreMonitoredApplicationRepository
     }
 
     public async Task<MonitoredApplication?> FindByNameAsync(
-        string name, Guid? tenantId, CancellationToken cancellationToken = default)
+        string name, CancellationToken cancellationToken = default)
     {
         var dbSet = await GetDbSetAsync();
         return await dbSet
             .AsNoTracking()
-            .FirstOrDefaultAsync(a => a.Name == name && a.TenantId == tenantId, cancellationToken);
+            .FirstOrDefaultAsync(a => a.Name == name, cancellationToken);
     }
 }

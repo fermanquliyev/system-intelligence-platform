@@ -1,95 +1,91 @@
-# SystemIntelligencePlatform - Angular Application
+# ErrorIntel — Angular UI
 
-This is an Angular application built on the ABP Framework. For more information, visit <a href="https://abp.io/" target="_blank">abp.io</a>.
+Single-instance web UI for **ErrorIntel**: dashboard, applications, incidents, and settings. It talks to the ABP host API; there is **no tenant switcher, tenant headers, or per-tenant routing** — one deployment maps to one backend.
 
-## Pre-requirements
+## Requirements
 
-* [Node.js v18 or later](https://nodejs.org/)
-* [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+- [Node.js 18+](https://nodejs.org/)
+- npm (or yarn)
 
-## Getting Started
+## Install
 
-### Install dependencies
+From this folder:
 
 ```bash
 npm install
 ```
 
-### Install ABP client-side libraries
-
-If you haven't already, run the following command from the solution root folder:
+If the solution uses ABP client libraries from the repo root:
 
 ```bash
 abp install-libs
 ```
 
-### Start the backend
+(run from the repository root when needed)
 
-Before running the Angular application, make sure your backend API is running:
+## Connect to the API
 
-* Start the host application
+The UI reads API and OAuth settings from:
 
-## Development server
+- **Development:** `src/environments/environment.ts`
+- **Production:** merged with `dynamic-env.json` via `remoteEnv` in `src/environments/environment.prod.ts`
 
-Run `ng serve` or `npm start` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+Set:
 
-## ABP CLI Commands
+- `apis.default.url` — base URL of the ErrorIntel host (e.g. `http://localhost:44397` or your Docker-published port)
+- `oAuthConfig.issuer` — usually the same origin as the API
+- `oAuthConfig.redirectUri` — Angular origin (e.g. `http://localhost:4200`)
+- `oAuthConfig.clientId` — must match the OpenIddict client on the server
 
-### Generate Proxy
+**No extra isolation setup:** the backend is a single instance. Optional ABP isolation headers (`__tenant`, etc.) are removed by `ClearIsolationHeadersInterceptor` so stale client state cannot affect requests.
 
-Generate TypeScript proxies for your backend APIs:
+## Run (development)
 
-```bash
-abp generate-proxy -t ng
-```
-
-This command generates service proxies that allow you to call your backend APIs in a type-safe manner.
-
-### Add Module
-
-Add a new ABP module to your Angular application:
+Start the **host API** first, then:
 
 ```bash
-abp add-module <module-name>
+npm start
 ```
 
-## Code scaffolding
+or:
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+```bash
+ng serve
+```
+
+Open `http://localhost:4200/`. Sign in with a user defined on your host (see the main repository README).
 
 ## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+```bash
+ng build
+```
 
-For a production build:
+Production:
 
 ```bash
 ng build --configuration production
 ```
 
-## Running unit tests
+Output is under `dist/`.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+## Tests
 
-## Running end-to-end tests
+```bash
+ng test
+```
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice.
+## Proxies
 
-## Environment Configuration
+Regenerate TypeScript API clients after backend changes:
 
-### Development Environment
+```bash
+abp generate-proxy -t ng
+```
 
-The development environment configuration is located in `src/environments/environment.ts`. Update the `apiUrl` to point to your backend API.
+(from the solution root, with paths configured for this project)
 
-### Production Environment
+## More documentation
 
-For production, the application uses dynamic environment configuration through the `dynamic-env.json` file. This allows you to configure the environment variables at deployment time without rebuilding the application.
-
-The web server's `getEnvConfig` endpoint is configured by default to serve the environment configuration.
-
-See [Environment](https://abp.io/docs/latest/framework/ui/angular/environment) for more information.
-
-## Additional Resources
-
-* [ABP Angular UI Documentation](https://abp.io/docs/latest/framework/ui/angular/overview)
-* [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli)
+- [ABP Angular UI](https://abp.io/docs/latest/framework/ui/angular/overview)
+- [Angular CLI](https://angular.dev/tools/cli)

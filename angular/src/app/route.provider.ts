@@ -11,19 +11,19 @@ function configureRoutes() {
   const routes = inject(RoutesService);
   routes.add([
       {
-        path: '/',
-        name: '::Menu:Home',
-        iconClass: 'fas fa-home',
-        order: 1,
-        layout: eLayoutType.empty,
-      },
-      {
         path: '/dashboard',
         name: '::Menu:Dashboard',
         iconClass: 'fas fa-tachometer-alt',
-        order: 2,
+        order: 1,
         layout: eLayoutType.application,
         requiredPolicy: 'SystemIntelligencePlatform.Dashboard',
+      },
+      {
+        path: '/about',
+        name: '::Menu:About',
+        iconClass: 'fas fa-info-circle',
+        order: 2,
+        layout: eLayoutType.empty,
       },
       {
         path: '/applications',
@@ -42,11 +42,12 @@ function configureRoutes() {
         requiredPolicy: 'SystemIntelligencePlatform.Incidents',
       },
       {
-        path: '/subscription',
-        name: '::Menu:Subscription',
-        iconClass: 'fas fa-credit-card',
+        path: '/instance-settings',
+        name: '::Menu:InstanceSettings',
+        iconClass: 'fas fa-sliders-h',
         order: 5,
         layout: eLayoutType.application,
+        requiredPolicy: 'SystemIntelligencePlatform.InstanceConfiguration',
       },
   ]);
 }

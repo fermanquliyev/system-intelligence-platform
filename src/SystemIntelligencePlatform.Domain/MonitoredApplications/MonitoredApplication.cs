@@ -1,12 +1,10 @@
 using System;
 using Volo.Abp.Domain.Entities.Auditing;
-using Volo.Abp.MultiTenancy;
 
 namespace SystemIntelligencePlatform.MonitoredApplications;
 
-public class MonitoredApplication : FullAuditedAggregateRoot<Guid>, IMultiTenant
+public class MonitoredApplication : FullAuditedAggregateRoot<Guid>
 {
-    public Guid? TenantId { get; set; }
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
     public string? Environment { get; set; }
@@ -19,12 +17,10 @@ public class MonitoredApplication : FullAuditedAggregateRoot<Guid>, IMultiTenant
         Guid id,
         string name,
         string apiKeyHash,
-        Guid? tenantId = null,
         string? description = null,
         string? environment = null)
         : base(id)
     {
-        TenantId = tenantId;
         Name = name;
         ApiKeyHash = apiKeyHash;
         Description = description;

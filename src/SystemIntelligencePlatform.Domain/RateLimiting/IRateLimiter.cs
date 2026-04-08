@@ -18,6 +18,8 @@ public class RateLimitResult
 
 public class RateLimitingOptions
 {
+    public const string SectionName = "RateLimiting";
+
     public int MaxRequestsPerWindow { get; set; } = 1000;
     public int WindowSizeSeconds { get; set; } = 60;
 }

@@ -1,5 +1,6 @@
 using SystemIntelligencePlatform.AI;
 using SystemIntelligencePlatform.BackgroundWorker;
+using SystemIntelligencePlatform.InstanceConfiguration;
 using Microsoft.EntityFrameworkCore;
 using SystemIntelligencePlatform.EntityFrameworkCore;
 using SystemIntelligencePlatform.LogEvents;
@@ -16,6 +17,15 @@ builder.Services.AddDbContext<SystemIntelligencePlatformDbContext>(options =>
 {
     options.UseNpgsql(connectionString);
 });
+
+builder.Services.AddDbContextFactory<SystemIntelligencePlatformDbContext>(options =>
+{
+    options.UseNpgsql(connectionString);
+});
+
+builder.Services.AddSingleton<WorkerInstanceConfigurationProvider>();
+builder.Services.AddSingleton<IInstanceConfigurationProvider>(sp =>
+    sp.GetRequiredService<WorkerInstanceConfigurationProvider>());
 
 builder.Services.Configure<RabbitMqWorkerOptions>(builder.Configuration.GetSection(RabbitMqWorkerOptions.SectionName));
 builder.Services.AddSingleton<AnomalyDetectionService>();

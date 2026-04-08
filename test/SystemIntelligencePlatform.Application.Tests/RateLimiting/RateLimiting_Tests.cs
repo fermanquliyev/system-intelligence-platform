@@ -4,6 +4,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
 using NSubstitute;
 using Shouldly;
+using SystemIntelligencePlatform.InstanceConfiguration;
 using SystemIntelligencePlatform.RateLimiting;
 using Xunit;
 
@@ -18,6 +19,7 @@ public class RateLimiting_Tests
 {
     private readonly IDistributedCache _mockCache;
     private readonly IOptions<RateLimitingOptions> _mockOptions;
+    private readonly IInstanceConfigurationProvider _mockInstanceConfig;
 
     public RateLimiting_Tests()
     {
@@ -28,6 +30,9 @@ public class RateLimiting_Tests
             MaxRequestsPerWindow = 1000,
             WindowSizeSeconds = 60
         });
+        _mockInstanceConfig = Substitute.For<IInstanceConfigurationProvider>();
+        _mockInstanceConfig.GetEffectiveSetting(Arg.Any<string>()).Returns((string?)null);
+        _mockInstanceConfig.IsFeatureEnabled(Arg.Any<string>()).Returns(true);
     }
 
     /// <summary>
@@ -40,7 +45,7 @@ public class RateLimiting_Tests
         // Arrange
         var tenantId = Guid.NewGuid();
         var resource = "log-ingestion";
-        var rateLimiter = new SlidingWindowRateLimiter(_mockCache, _mockOptions);
+        var rateLimiter = new SlidingWindowRateLimiter(_mockCache, _mockOptions, _mockInstanceConfig);
 
         // Mock cache returning null (no existing entries) or low count
         _mockCache.GetAsync(Arg.Any<string>(), Arg.Any<System.Threading.CancellationToken>())
@@ -64,7 +69,7 @@ public class RateLimiting_Tests
         // Arrange
         var tenantId = Guid.NewGuid();
         var resource = "log-ingestion";
-        var rateLimiter = new SlidingWindowRateLimiter(_mockCache, _mockOptions);
+        var rateLimiter = new SlidingWindowRateLimiter(_mockCache, _mockOptions, _mockInstanceConfig);
 
         // Mock cache returning a count that exceeds the limit
         // Simulating 1001 requests (over the 1000 limit)
@@ -91,7 +96,7 @@ public class RateLimiting_Tests
         var tenantA = Guid.NewGuid();
         var tenantB = Guid.NewGuid();
         var resource = "log-ingestion";
-        var rateLimiter = new SlidingWindowRateLimiter(_mockCache, _mockOptions);
+        var rateLimiter = new SlidingWindowRateLimiter(_mockCache, _mockOptions, _mockInstanceConfig);
 
         // Mock cache to return high count for tenantA but null for tenantB
         var highCountBytes = System.Text.Encoding.UTF8.GetBytes("1001");
@@ -119,7 +124,7 @@ public class RateLimiting_Tests
         // Arrange
         var tenantId = Guid.NewGuid();
         var resource = "log-ingestion";
-        var rateLimiter = new SlidingWindowRateLimiter(_mockCache, _mockOptions);
+        var rateLimiter = new SlidingWindowRateLimiter(_mockCache, _mockOptions, _mockInstanceConfig);
 
         // First check: cache returns high count (over limit)
         var highCountBytes = System.Text.Encoding.UTF8.GetBytes("1001");

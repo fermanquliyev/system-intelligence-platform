@@ -1,329 +1,266 @@
-@if (!hasLoggedIn) {
-
 <!-- Navbar -->
 <nav class="landing-nav">
-  <div class="container d-flex justify-content-between align-items-center py-3">
-    <a class="navbar-brand fw-bold fs-4" href="/">
-      <i class="fa fa-bug me-2 text-primary"></i>ErrorIntel
+  <div class="container d-flex justify-content-between align-items-center py-3 flex-wrap gap-2">
+    <a class="navbar-brand fw-bold fs-5 mb-0" routerLink="/about">
+      <i class="fa fa-book me-2 text-primary"></i>ErrorIntel
+      <span class="text-muted fw-normal fs-6 ms-2 d-none d-sm-inline">Developer docs</span>
     </a>
-    <div class="d-flex gap-2">
-      <a class="btn btn-outline-primary btn-sm" (click)="login()">Sign In</a>
-      <a class="btn btn-primary btn-sm" (click)="login()">Start Free</a>
+    <div class="d-flex gap-2 align-items-center">
+      <a class="btn btn-outline-secondary btn-sm" href="#overview">Jump to top</a>
+      @if (hasLoggedIn) {
+        <a class="btn btn-primary btn-sm" routerLink="/dashboard">
+          <i class="fa fa-tachometer-alt me-1"></i>Dashboard
+        </a>
+      } @else {
+        <button type="button" class="btn btn-outline-primary btn-sm" (click)="login()">Sign in</button>
+        <button type="button" class="btn btn-primary btn-sm" (click)="login()">Open app</button>
+      }
     </div>
   </div>
 </nav>
 
-<!-- Hero -->
-<section class="hero">
-  <div class="container">
-    <div class="row align-items-center min-vh-75">
-      <div class="col-lg-7">
-        <div class="hero-badge mb-3">
-          <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill">
-            <i class="fa fa-sparkles me-1"></i> AI-Powered Analysis
-          </span>
-        </div>
-        <h1 class="hero-title">
-          Stop debugging blindly.<br/>
-          <span class="text-primary">Let AI tell you why.</span>
-        </h1>
-        <p class="hero-subtitle">
-          ErrorIntel monitors your .NET applications, detects anomalies in real-time,
-          and uses AI to generate root cause analysis with actionable fix suggestions.
-          Fully self-hostable and cloud-agnostic.
-        </p>
-        <div class="d-flex gap-3 flex-wrap mt-4">
-          <button class="btn btn-primary btn-lg px-5 shadow" (click)="login()">
-            <i class="fa fa-rocket me-2"></i>Start Free
-          </button>
-          <button class="btn btn-outline-secondary btn-lg px-4" (click)="tryDemo()">
-            <i class="fa fa-play-circle me-2"></i>Try Live Demo
-          </button>
-        </div>
-        <p class="text-muted mt-3 small">
-          <i class="fa fa-check-circle text-success me-1"></i> No credit card required
-          <span class="mx-2">|</span>
-          <i class="fa fa-check-circle text-success me-1"></i> 10,000 free logs/month
-          <span class="mx-2">|</span>
-          <i class="fa fa-check-circle text-success me-1"></i> Setup in 5 minutes
-        </p>
-      </div>
-      <div class="col-lg-5 d-none d-lg-block">
-        <div class="hero-visual">
-          <div class="terminal-window">
-            <div class="terminal-header">
-              <span class="terminal-dot red"></span>
-              <span class="terminal-dot yellow"></span>
-              <span class="terminal-dot green"></span>
-              <span class="terminal-title">ErrorIntel Analysis</span>
-            </div>
-            <div class="terminal-body">
-              <div class="terminal-line">
-                <span class="text-danger">CRITICAL</span>
-                <span class="text-light ms-2">NullReferenceException in OrderService</span>
-              </div>
-              <div class="terminal-line mt-2">
-                <span class="text-warning">Root Cause:</span>
-                <span class="text-info ms-1">Payment processing encounters null customer object when session expires mid-checkout</span>
-              </div>
-              <div class="terminal-line mt-2">
-                <span class="text-success">Suggested Fix:</span>
-                <span class="text-info ms-1">Add null check for customer session before payment processing. Implement session refresh middleware.</span>
-              </div>
-              <div class="terminal-line mt-2">
-                <span class="text-muted">Confidence:</span>
-                <span class="text-light ms-1">87%</span>
-                <span class="ms-3 text-muted">Occurrences:</span>
-                <span class="text-light ms-1">156</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+<div class="dev-docs">
+  <header class="dev-docs-hero py-5">
+    <div class="container">
+      <p class="text-uppercase small text-muted mb-2 letter-spacing">About this deployment</p>
+      <h1 class="dev-docs-title mb-3">ErrorIntel — developer reference</h1>
+      <p class="dev-docs-lead text-muted mb-0 col-lg-10">
+        Open-source log analysis and incident detection for teams that want full control of their data.
+        Single-tenant, self-hosted stack on PostgreSQL, RabbitMQ, ASP.NET Core, and Angular — no SaaS or tenant model.
+        The repository may still be named <code>system-intelligence-platform</code>; product documentation uses
+        <strong>ErrorIntel</strong>.
+      </p>
     </div>
-  </div>
-</section>
+  </header>
 
-<!-- How It Works -->
-<section class="how-it-works py-5">
-  <div class="container">
-    <div class="text-center mb-5">
-      <h2 class="section-title">How It Works</h2>
-      <p class="section-subtitle">From log to fix in seconds</p>
-    </div>
+  <div class="container pb-5">
     <div class="row g-4">
-      <div class="col-md-3 text-center">
-        <div class="step-number">1</div>
-        <h5 class="fw-bold mt-3">Ingest</h5>
-        <p class="text-muted small">Send logs via REST API or NuGet package. We handle the rest.</p>
-      </div>
-      <div class="col-md-3 text-center">
-        <div class="step-number">2</div>
-        <h5 class="fw-bold mt-3">Detect</h5>
-        <p class="text-muted small">Adaptive anomaly detection identifies spikes, bursts, and critical errors.</p>
-      </div>
-      <div class="col-md-3 text-center">
-        <div class="step-number">3</div>
-        <h5 class="fw-bold mt-3">Analyze</h5>
-        <p class="text-muted small">AI generates root cause summaries and suggested fixes.</p>
-      </div>
-      <div class="col-md-3 text-center">
-        <div class="step-number">4</div>
-        <h5 class="fw-bold mt-3">Alert</h5>
-        <p class="text-muted small">Get notified via dashboard, SignalR, or webhooks instantly.</p>
-      </div>
-    </div>
-  </div>
-</section>
+      <aside class="col-lg-3 d-none d-lg-block">
+        <nav class="dev-toc sticky-top py-2">
+          <div class="small text-muted text-uppercase fw-semibold mb-2">On this page</div>
+          <ul class="list-unstyled small dev-toc-list">
+            <li><a href="/about#overview">Overview</a></li>
+            <li><a href="/about#features">Features</a></li>
+            <li><a href="/about#quick-start">Quick start</a></li>
+            <li><a href="/about#architecture">Architecture</a></li>
+            <li><a href="/about#configuration">Configuration</a></li>
+            <li><a href="/about#customization">Customization</a></li>
+            <li><a href="/about#local-dev">Local development</a></li>
+            <li><a href="/about#angular-ui">Angular UI</a></li>
+            <li><a href="/about#tests">Tests</a></li>
+            <li><a href="/about#license">License &amp; contributions</a></li>
+          </ul>
+        </nav>
+      </aside>
 
-<!-- Features -->
-<section class="features py-5 bg-light">
-  <div class="container">
-    <div class="text-center mb-5">
-      <h2 class="section-title">Powerful Features</h2>
-      <p class="section-subtitle">Everything you need to master your application errors</p>
-    </div>
-    <div class="row g-4">
-      <div class="col-md-6 col-lg-4">
-        <div class="card feature-card h-100 border-0 shadow-sm">
-          <div class="card-body p-4">
-            <div class="feature-icon-wrapper mb-3">
-              <i class="fa fa-brain fa-2x text-primary"></i>
-            </div>
-            <h5 class="fw-bold">AI Root Cause Analysis</h5>
-            <p class="text-muted mb-0">Every incident gets an AI-generated summary: what happened, why, and how to fix it.</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-4">
-        <div class="card feature-card h-100 border-0 shadow-sm">
-          <div class="card-body p-4">
-            <div class="feature-icon-wrapper mb-3">
-              <i class="fa fa-chart-line fa-2x text-primary"></i>
-            </div>
-            <h5 class="fw-bold">Adaptive Anomaly Detection</h5>
-            <p class="text-muted mb-0">Statistical baselines per app detect spikes, bursts, and critical errors automatically.</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-4">
-        <div class="card feature-card h-100 border-0 shadow-sm">
-          <div class="card-body p-4">
-            <div class="feature-icon-wrapper mb-3">
-              <i class="fa fa-bolt fa-2x text-primary"></i>
-            </div>
-            <h5 class="fw-bold">Real-Time Dashboard</h5>
-            <p class="text-muted mb-0">Live incident feed powered by SignalR with severity charts and trend analysis.</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-4">
-        <div class="card feature-card h-100 border-0 shadow-sm">
-          <div class="card-body p-4">
-            <div class="feature-icon-wrapper mb-3">
-              <i class="fa fa-bell fa-2x text-primary"></i>
-            </div>
-            <h5 class="fw-bold">Webhook Notifications</h5>
-            <p class="text-muted mb-0">Instant alerts to Slack, Teams, or any HTTP endpoint when incidents occur.</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-4">
-        <div class="card feature-card h-100 border-0 shadow-sm">
-          <div class="card-body p-4">
-            <div class="feature-icon-wrapper mb-3">
-              <i class="fa fa-search fa-2x text-primary"></i>
-            </div>
-            <h5 class="fw-bold">Full-Text Search</h5>
-            <p class="text-muted mb-0">Search across all incidents and logs using full-text search.</p>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-6 col-lg-4">
-        <div class="card feature-card h-100 border-0 shadow-sm">
-          <div class="card-body p-4">
-            <div class="feature-icon-wrapper mb-3">
-              <i class="fa fa-users fa-2x text-primary"></i>
-            </div>
-            <h5 class="fw-bold">Multi-Tenant</h5>
-            <p class="text-muted mb-0">Each team gets fully isolated data, API keys, and billing.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+      <div class="col-lg-9">
+        <section id="overview" class="dev-section">
+          <h2>Overview</h2>
+          <p>
+            ErrorIntel ingests logs, detects anomalies, optionally enriches incidents with an LLM, and pushes live updates
+            to the browser. One deployment per installation — minimal moving parts beyond Postgres, RabbitMQ, and an
+            optional LLM API key.
+          </p>
+        </section>
 
-<!-- Pricing -->
-<section class="pricing py-5" id="pricing">
-  <div class="container">
-    <div class="text-center mb-5">
-      <h2 class="section-title">Simple, Transparent Pricing</h2>
-      <p class="section-subtitle">Start free, upgrade when you're ready</p>
-    </div>
-    <div class="row g-4 justify-content-center">
+        <section id="features" class="dev-section">
+          <h2>Features</h2>
+          <ul class="dev-list">
+            <li><strong>Log ingestion</strong> — API key–authenticated HTTP endpoint; events are queued for async processing.</li>
+            <li><strong>Incident detection</strong> — Adaptive anomaly detection from recent log patterns.</li>
+            <li>
+              <strong>AI-powered analysis</strong> — <code>LlmIncidentAiAnalyzer</code> (Google Gemini-compatible API) with
+              automatic fallback to <code>LocalIncidentAiAnalyzer</code> when no API key is set or the call fails.
+            </li>
+            <li><strong>Real-time updates</strong> — SignalR broadcasts to authenticated clients.</li>
+            <li><strong>Self-hosted</strong> — Typical stack: Postgres, RabbitMQ, API, worker, Angular (e.g. <code>docker-compose up</code>).</li>
+          </ul>
+        </section>
 
-      <!-- Free -->
-      <div class="col-lg-4 col-md-6">
-        <div class="card pricing-card h-100 border shadow-sm">
-          <div class="card-body p-4 d-flex flex-column">
-            <h4 class="fw-bold">Free</h4>
-            <div class="my-3">
-              <span class="display-4 fw-bold">$0</span>
-              <span class="text-muted">/month</span>
-            </div>
-            <p class="text-muted mb-4">Perfect for side projects and evaluation</p>
-            <ul class="list-unstyled flex-grow-1">
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>10,000 logs/month</li>
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>3 applications</li>
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>7-day retention</li>
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>Anomaly detection</li>
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>Real-time dashboard</li>
-              <li class="mb-3 text-muted"><i class="fa fa-times text-muted me-2"></i>AI root cause analysis</li>
-              <li class="mb-3 text-muted"><i class="fa fa-times text-muted me-2"></i>Webhook notifications</li>
-            </ul>
-            <button class="btn btn-outline-primary w-100 mt-auto" (click)="login()">Get Started Free</button>
+        <section id="quick-start" class="dev-section">
+          <h2>Quick start</h2>
+          <ol class="dev-steps">
+            <li><strong>Clone</strong> the repository.</li>
+            <li>
+              <strong>Configure AI (optional).</strong> Copy <code>.env.example</code> to <code>.env</code> at the repo root:
+              <pre class="doc-pre" tabindex="0"><code>AI__ApiKey=your-google-ai-studio-key</code></pre>
+              Docker Compose reads <code>.env</code> for substitution. If <code>AI__ApiKey</code> is empty, the system still runs using the local analyzer only.
+            </li>
+            <li>
+              <strong>Run the stack</strong>
+              <pre class="doc-pre" tabindex="0"><code>docker-compose up --build</code></pre>
+            </li>
+            <li>
+              <strong>Open endpoints</strong> (default ports — adjust if yours differ)
+              <ul class="mt-2 mb-0">
+                <li>UI — Angular dev server or container (often <code>http://localhost:4200</code>)</li>
+                <li>API / OpenIddict — host project (often <code>http://localhost:44397</code>)</li>
+                <li>RabbitMQ management — <code>http://localhost:15672</code> (default <code>guest</code> / <code>guest</code>)</li>
+              </ul>
+            </li>
+            <li>
+              <strong>Sign in</strong> — Default admin is seeded by ABP; check <code>SystemIntelligencePlatformConsts</code> in the host for development email/password defaults.
+            </li>
+          </ol>
+        </section>
+
+        <section id="architecture" class="dev-section">
+          <h2>Architecture</h2>
+          <pre class="doc-pre doc-pre--wide" tabindex="0"><code>Angular → API → RabbitMQ (log-ingestion) → Worker → PostgreSQL
+                              ↓
+                    RabbitMQ (incident-notifications)
+                              ↓
+                         API → SignalR → Angular</code></pre>
+          <ul class="dev-list mt-3">
+            <li>
+              <strong>API</strong> (<code>SystemIntelligencePlatform.HttpApi.Host</code>) — REST, OpenIddict, SignalR hub, optional RabbitMQ consumer for incident notifications.
+            </li>
+            <li>
+              <strong>Worker</strong> (<code>SystemIntelligencePlatform.BackgroundWorker</code>) — Consumes log messages, persists events, runs detection and AI, publishes incident notifications.
+            </li>
+            <li>
+              <strong>Database</strong> — EF Core + PostgreSQL; search via <code>DatabaseIncidentSearchService</code> (SQL <code>ILIKE</code>, no Elasticsearch).
+            </li>
+          </ul>
+        </section>
+
+        <section id="configuration" class="dev-section">
+          <h2>Configuration</h2>
+          <p class="text-muted small mb-2">Override with environment variables (e.g. <code>AI__ApiKey</code>, <code>DataRetention__LogRetentionDays</code>) or a <code>.env</code> file for Docker Compose.</p>
+          <div class="table-responsive">
+            <table class="table table-sm table-striped dev-table align-middle">
+              <thead>
+                <tr>
+                  <th scope="col">Area</th>
+                  <th scope="col">Setting</th>
+                  <th scope="col">Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>AI</td>
+                  <td><code>AI:Provider</code>, <code>AI:ApiKey</code>, <code>AI:Model</code></td>
+                  <td>Bound to <code>GoogleAiOptions</code>; worker and API use the same shape.</td>
+                </tr>
+                <tr>
+                  <td>Data retention</td>
+                  <td><code>DataRetention:LogRetentionDays</code></td>
+                  <td>Background job deletes old <code>LogEvent</code> rows (default 90).</td>
+                </tr>
+                <tr>
+                  <td>Queue</td>
+                  <td><code>RabbitMQ:*</code></td>
+                  <td>Host, port, credentials, virtual host.</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-        </div>
-      </div>
+        </section>
 
-      <!-- Pro -->
-      <div class="col-lg-4 col-md-6">
-        <div class="card pricing-card h-100 border-primary shadow-lg position-relative popular">
-          <div class="popular-badge">
-            <span class="badge bg-primary px-3 py-2">Most Popular</span>
-          </div>
-          <div class="card-body p-4 d-flex flex-column">
-            <h4 class="fw-bold">Pro</h4>
-            <div class="my-3">
-              <span class="display-4 fw-bold">$49</span>
-              <span class="text-muted">/month</span>
-            </div>
-            <p class="text-muted mb-4">For growing teams that need AI-powered insights</p>
-            <ul class="list-unstyled flex-grow-1">
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i><strong>500,000</strong> logs/month</li>
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i><strong>20</strong> applications</li>
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i><strong>30-day</strong> retention</li>
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>Anomaly detection</li>
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>Real-time dashboard</li>
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i><strong>AI root cause analysis</strong></li>
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i><strong>Webhook notifications</strong></li>
-            </ul>
-            <button class="btn btn-primary w-100 mt-auto" (click)="login()">Start Pro Trial</button>
-          </div>
-        </div>
-      </div>
+        <section id="customization" class="dev-section">
+          <h2>Customization</h2>
+          <ul class="dev-list">
+            <li>
+              <strong>Replace the AI provider</strong> — Implement <code>IIncidentAiAnalyzer</code> or adapt
+              <code>LlmIncidentAiAnalyzer</code> / <code>ServiceCollectionExtensions.AddLlmIncidentAiAnalyzer</code> for another HTTP API;
+              keep <code>LocalIncidentAiAnalyzer</code> as fallback.
+            </li>
+            <li><strong>Tune detection</strong> — <code>AnomalyDetectionService</code> in the domain/application layer defines thresholds and rules.</li>
+            <li>
+              <strong>Extend the model</strong> — Add entities under <code>Domain</code>, register in <code>SystemIntelligencePlatformDbContext</code>,
+              expose via application services and Angular as usual for ABP.
+            </li>
+          </ul>
+        </section>
 
-      <!-- Enterprise -->
-      <div class="col-lg-4 col-md-6">
-        <div class="card pricing-card h-100 border shadow-sm">
-          <div class="card-body p-4 d-flex flex-column">
-            <h4 class="fw-bold">Enterprise</h4>
-            <div class="my-3">
-              <span class="display-4 fw-bold">Custom</span>
-            </div>
-            <p class="text-muted mb-4">For large organizations with advanced needs</p>
-            <ul class="list-unstyled flex-grow-1">
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i><strong>10,000,000</strong> logs/month</li>
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i><strong>100</strong> applications</li>
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i><strong>90-day</strong> retention</li>
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>Everything in Pro</li>
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>SLA guarantee</li>
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>Priority support</li>
-              <li class="mb-3"><i class="fa fa-check text-success me-2"></i>Custom deployment</li>
-            </ul>
-            <button class="btn btn-outline-primary w-100 mt-auto" (click)="login()">Contact Sales</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+        <section id="local-dev" class="dev-section">
+          <h2>Local development (without Docker)</h2>
+          <ul class="dev-list">
+            <li>Restore NuGet packages; set <code>ConnectionStrings:Default</code> and RabbitMQ in <code>appsettings.Development.json</code>.</li>
+            <li>Run the DbMigrator or apply EF migrations to PostgreSQL.</li>
+            <li>Start <code>HttpApi.Host</code>, <code>BackgroundWorker</code>, and <code>ng serve</code> for the Angular app.</li>
+          </ul>
+        </section>
 
-<!-- CTA -->
-<section class="cta py-5">
-  <div class="container text-center">
-    <h2 class="fw-bold mb-3">Ready to stop debugging blindly?</h2>
-    <p class="lead text-muted mb-4">Join .NET teams who resolve incidents 10x faster with AI-powered error intelligence.</p>
-    <button class="btn btn-primary btn-lg px-5 shadow" (click)="login()">
-      <i class="fa fa-rocket me-2"></i>Start Free — No Credit Card
-    </button>
-  </div>
-</section>
+        <section id="angular-ui" class="dev-section">
+          <h2>Angular UI</h2>
+          <p>
+            Single-instance web UI: dashboard, applications, incidents, and settings. No tenant switcher, tenant headers,
+            or per-tenant routing — one deployment maps to one backend.
+          </p>
+          <h3 class="h5 mt-4">Requirements</h3>
+          <p class="mb-2">Node.js 18+, npm (or yarn).</p>
+          <h3 class="h5 mt-4">Install</h3>
+          <p class="mb-2">From the <code>angular</code> folder:</p>
+          <pre class="doc-pre" tabindex="0"><code>npm install</code></pre>
+          <p class="mb-2">If the solution uses ABP client libraries from the repo root:</p>
+          <pre class="doc-pre" tabindex="0"><code>abp install-libs</code></pre>
+          <h3 class="h5 mt-4">Connect to the API</h3>
+          <ul class="dev-list">
+            <li><strong>Development:</strong> <code>src/environments/environment.ts</code></li>
+            <li><strong>Production:</strong> merged with <code>dynamic-env.json</code> via <code>remoteEnv</code> in <code>environment.prod.ts</code></li>
+          </ul>
+          <p>Set:</p>
+          <ul class="dev-list">
+            <li><code>apis.default.url</code> — base URL of the host (e.g. <code>http://localhost:44397</code>)</li>
+            <li><code>oAuthConfig.issuer</code> — usually the same origin as the API</li>
+            <li><code>oAuthConfig.redirectUri</code> — Angular origin (e.g. <code>http://localhost:4200</code>)</li>
+            <li><code>oAuthConfig.clientId</code> — must match the OpenIddict client on the server</li>
+          </ul>
+          <p>
+            Optional ABP isolation headers (<code>__tenant</code>, etc.) are stripped by <code>ClearIsolationHeadersInterceptor</code>
+            so stale client state cannot affect requests.
+          </p>
+          <h3 class="h5 mt-4">Run &amp; build</h3>
+          <p class="mb-2">Start the host API first, then from <code>angular</code>:</p>
+          <pre class="doc-pre" tabindex="0"><code>npm start
+# or
+ng serve</code></pre>
+          <pre class="doc-pre" tabindex="0"><code>ng build
+ng build --configuration production</code></pre>
+          <p class="mb-2">Regenerate TypeScript API clients after backend changes (from solution root, paths as configured):</p>
+          <pre class="doc-pre" tabindex="0"><code>abp generate-proxy -t ng</code></pre>
+          <p class="small text-muted mb-0">
+            More: <a href="https://abp.io/docs/latest/framework/ui/angular/overview" target="_blank" rel="noopener noreferrer">ABP Angular UI</a>,
+            <a href="https://angular.dev/tools/cli" target="_blank" rel="noopener noreferrer">Angular CLI</a>.
+          </p>
+        </section>
 
-<!-- Footer -->
-<footer class="landing-footer py-4 mt-5">
-  <div class="container">
-    <div class="row">
-      <div class="col-md-6">
-        <span class="fw-bold"><i class="fa fa-bug me-1 text-primary"></i>ErrorIntel</span>
-        <span class="text-muted ms-2">&copy; 2026 — AI Error Intelligence for .NET Teams</span>
-      </div>
-      <div class="col-md-6 text-md-end">
-        <a href="#pricing" class="text-muted me-3">Pricing</a>
-        <a (click)="login()" class="text-muted me-3" style="cursor:pointer">Sign In</a>
-        <a (click)="tryDemo()" class="text-muted" style="cursor:pointer">Demo</a>
-      </div>
-    </div>
-  </div>
-</footer>
+        <section id="tests" class="dev-section">
+          <h2>Tests</h2>
+          <p class="mb-2">Backend:</p>
+          <pre class="doc-pre" tabindex="0"><code>dotnet test</code></pre>
+          <p class="mb-2">Angular:</p>
+          <pre class="doc-pre" tabindex="0"><code>ng test</code></pre>
+        </section>
 
-} @else {
-
-<!-- Logged-in redirect -->
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-md-8 text-center">
-      <div class="mb-4">
-        <i class="fa fa-tachometer-alt fa-4x text-primary"></i>
+        <section id="license" class="dev-section dev-section--last">
+          <h2>License &amp; contributions</h2>
+          <p>
+            Treat this as an open-source, self-hosted project: fork, run on your infrastructure, and adjust to your policies.
+            Pull requests and issues are welcome.
+          </p>
+        </section>
       </div>
-      <h2 class="mb-3">Welcome back!</h2>
-      <p class="lead text-muted mb-4">Head to your dashboard to see your incidents and system health.</p>
-      <a routerLink="/dashboard" class="btn btn-primary btn-lg px-5">
-        <i class="fa fa-arrow-right me-2"></i>Go to Dashboard
-      </a>
     </div>
   </div>
 </div>
 
-}
+<footer class="landing-footer py-4">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <span class="fw-bold"><i class="fa fa-bug me-1 text-primary"></i>ErrorIntel</span>
+        <span class="text-muted ms-2">&copy; 2026 — Developer documentation mirrors repository READMEs.</span>
+      </div>
+      <div class="col-md-4 text-md-end mt-2 mt-md-0">
+        @if (hasLoggedIn) {
+          <a routerLink="/dashboard" class="text-muted text-decoration-none me-3">Dashboard</a>
+        } @else {
+          <a (click)="login()" class="text-muted text-decoration-none me-3" style="cursor: pointer">Sign in</a>
+        }
+        <a href="#overview" class="text-muted text-decoration-none">Top</a>
+      </div>
+    </div>
+  </div>
+</footer>

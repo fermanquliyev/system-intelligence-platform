@@ -1,12 +1,13 @@
 import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { LocalizationPipe } from '@abp/ng.core';
 import { DashboardService, DashboardDto } from '../proxy/dashboard/dashboard.service';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
-  imports: [CommonModule, LocalizationPipe],
+  imports: [CommonModule, RouterModule, LocalizationPipe],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   private dashboardService = inject(DashboardService);

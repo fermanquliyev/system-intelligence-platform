@@ -17,7 +17,7 @@ export const environment = {
   production: true,
   application: {
     baseUrl,
-    name: 'SystemIntelligencePlatform',
+    name: 'ErrorIntel',
   },
   oAuthConfig,
   apis: {

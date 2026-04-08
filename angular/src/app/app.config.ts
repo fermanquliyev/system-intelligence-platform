@@ -5,13 +5,14 @@ import { provideFeatureManagementConfig } from '@abp/ng.feature-management';
 import { provideAbpThemeShared,} from '@abp/ng.theme.shared';
 import { provideIdentityConfig } from '@abp/ng.identity/config';
 import { provideAccountConfig } from '@abp/ng.account/config';
-import { provideTenantManagementConfig } from '@abp/ng.tenant-management/config';
 import { registerLocaleForEsBuild } from '@abp/ng.core/locale';
 import { provideThemeLeptonX } from '@abp/ng.theme.lepton-x';
 import { provideSideMenuLayout } from '@abp/ng.theme.lepton-x/layouts';
 import { provideLogo, withEnvironmentOptions } from "@abp/ng.theme.shared";
 import { ApplicationConfig } from '@angular/core';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { ClearIsolationHeadersInterceptor } from './http/clear-isolation-headers.interceptor';
 import { provideRouter } from '@angular/router';
 import { environment } from '../environments/environment';
 import { APP_ROUTES } from './app.routes';
@@ -38,7 +39,11 @@ export const appConfig: ApplicationConfig = {
     provideSideMenuLayout(),
     provideLogo(withEnvironmentOptions(environment)),
     provideAccountConfig(),
-    provideTenantManagementConfig(),
     provideAbpThemeShared(),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ClearIsolationHeadersInterceptor,
+      multi: true,
+    },
   ]
 };

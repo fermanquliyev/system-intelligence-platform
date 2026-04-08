@@ -3,11 +3,10 @@ using System;
 namespace SystemIntelligencePlatform.LogEvents;
 
 /// <summary>
-/// Message payload published to the Service Bus queue for async processing.
+/// Message payload published to the queue for async processing.
 /// </summary>
 public class LogEventMessage
 {
-    public Guid? TenantId { get; set; }
     public Guid ApplicationId { get; set; }
     public LogLevel Level { get; set; }
     public string Message { get; set; } = null!;

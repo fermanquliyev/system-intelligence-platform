@@ -2,37 +2,19 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using Volo.Abp.MultiTenancy;
 
 namespace SystemIntelligencePlatform.Realtime;
 
 [Authorize]
 public class IncidentHub : Hub
 {
-    private readonly ICurrentTenant _currentTenant;
-
-    public IncidentHub(ICurrentTenant currentTenant)
+    public override Task OnConnectedAsync()
     {
-        _currentTenant = currentTenant;
+        return base.OnConnectedAsync();
     }
 
-    public override async Task OnConnectedAsync()
+    public override Task OnDisconnectedAsync(Exception? exception)
     {
-        var group = _currentTenant.Id.HasValue
-            ? $"tenant_{_currentTenant.Id.Value}"
-            : "host";
-
-        await Groups.AddToGroupAsync(Context.ConnectionId, group);
-        await base.OnConnectedAsync();
-    }
-
-    public override async Task OnDisconnectedAsync(Exception? exception)
-    {
-        var group = _currentTenant.Id.HasValue
-            ? $"tenant_{_currentTenant.Id.Value}"
-            : "host";
-
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, group);
-        await base.OnDisconnectedAsync(exception);
+        return base.OnDisconnectedAsync(exception);
     }
 }

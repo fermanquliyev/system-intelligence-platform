@@ -5,6 +5,10 @@ export const APP_ROUTES: Routes = [
   {
     path: '',
     pathMatch: 'full',
+    redirectTo: 'dashboard',
+  },
+  {
+    path: 'about',
     loadComponent: () => import('./home/home.component').then(c => c.HomeComponent),
   },
   {
@@ -14,10 +18,6 @@ export const APP_ROUTES: Routes = [
   {
     path: 'identity',
     loadChildren: () => import('@abp/ng.identity').then(c => c.createRoutes()),
-  },
-  {
-    path: 'tenant-management',
-    loadChildren: () => import('@abp/ng.tenant-management').then(c => c.createRoutes()),
   },
   {
     path: 'setting-management',
@@ -44,8 +44,8 @@ export const APP_ROUTES: Routes = [
     canActivate: [authGuard, permissionGuard],
   },
   {
-    path: 'subscription',
-    loadComponent: () => import('./subscription/subscription.component').then(c => c.SubscriptionComponent),
-    canActivate: [authGuard],
+    path: 'instance-settings',
+    loadComponent: () => import('./instance-settings/instance-settings.component').then(c => c.InstanceSettingsComponent),
+    canActivate: [authGuard, permissionGuard],
   },
 ];

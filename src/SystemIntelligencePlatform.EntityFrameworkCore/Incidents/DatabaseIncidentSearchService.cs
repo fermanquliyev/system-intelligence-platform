@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,7 +11,6 @@ namespace SystemIntelligencePlatform.EntityFrameworkCore.Incidents;
 
 /// <summary>
 /// Search incidents using EF Core queries against PostgreSQL (ILIKE for case-insensitive match).
-/// No external search engine required.
 /// </summary>
 public class DatabaseIncidentSearchService : IAzureSearchService, ITransientDependency
 {
@@ -26,17 +24,13 @@ public class DatabaseIncidentSearchService : IAzureSearchService, ITransientDepe
 
     public Task IndexIncidentAsync(IncidentSearchDocument document)
     {
-        // Data is already in PostgreSQL; no separate index to update.
         return Task.CompletedTask;
     }
 
-    public async Task<IncidentSearchResult> SearchAsync(string query, Guid? tenantId, int skip = 0, int take = 20)
+    public async Task<IncidentSearchResult> SearchAsync(string query, int skip = 0, int take = 20)
     {
         var db = await _dbContextProvider.GetDbContextAsync();
         var q = db.Incidents.AsNoTracking();
-
-        if (tenantId.HasValue)
-            q = q.Where(i => i.TenantId == tenantId.Value);
 
         var searchTerm = query?.Trim();
         if (!string.IsNullOrEmpty(searchTerm))
@@ -54,7 +48,7 @@ public class DatabaseIncidentSearchService : IAzureSearchService, ITransientDepe
             .OrderByDescending(i => i.LastOccurrence)
             .Skip(skip)
             .Take(take)
-            .Select(i => new { i.Id, i.Title, i.Description, i.RootCauseSummary, i.Severity, i.ApplicationId, i.KeyPhrases, i.Entities, i.TenantId })
+            .Select(i => new { i.Id, i.Title, i.Description, i.RootCauseSummary, i.Severity, i.ApplicationId, i.KeyPhrases, i.Entities })
             .ToListAsync();
 
         var appIds = incidents.Select(x => x.ApplicationId).Distinct().ToList();
@@ -72,8 +66,7 @@ public class DatabaseIncidentSearchService : IAzureSearchService, ITransientDepe
             Severity = i.Severity.ToString(),
             ApplicationName = appNames.GetValueOrDefault(i.ApplicationId, "Unknown"),
             KeyPhrases = i.KeyPhrases,
-            Entities = i.Entities,
-            TenantId = i.TenantId?.ToString()
+            Entities = i.Entities
         }).ToList();
 
         return new IncidentSearchResult
@@ -83,9 +76,8 @@ public class DatabaseIncidentSearchService : IAzureSearchService, ITransientDepe
         };
     }
 
-    public Task DeleteDocumentAsync(Guid incidentId)
+    public Task DeleteDocumentAsync(System.Guid incidentId)
     {
-        // No separate index; incident remains in DB (soft delete or status handled elsewhere).
         return Task.CompletedTask;
     }
 }

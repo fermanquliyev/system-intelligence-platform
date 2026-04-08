@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using SystemIntelligencePlatform.Incidents;
@@ -11,19 +10,19 @@ public class FakeRealtimeNotifier : IRealtimeNotifier, ITransientDependency
 {
     public List<IncidentNotification> SentNotifications { get; } = new();
 
-    public Task NotifyIncidentCreatedAsync(Guid? tenantId, IncidentNotification notification)
+    public Task NotifyIncidentCreatedAsync(IncidentNotification notification)
     {
         SentNotifications.Add(notification);
         return Task.CompletedTask;
     }
 
-    public Task NotifyIncidentUpdatedAsync(Guid? tenantId, IncidentNotification notification)
+    public Task NotifyIncidentUpdatedAsync(IncidentNotification notification)
     {
         SentNotifications.Add(notification);
         return Task.CompletedTask;
     }
 
-    public Task NotifyIncidentResolvedAsync(Guid? tenantId, IncidentNotification notification)
+    public Task NotifyIncidentResolvedAsync(IncidentNotification notification)
     {
         SentNotifications.Add(notification);
         return Task.CompletedTask;

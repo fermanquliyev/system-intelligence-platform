@@ -13,6 +13,5 @@ public interface IMonitoredApplicationRepository : IRepository<MonitoredApplicat
 
     Task<MonitoredApplication?> FindByNameAsync(
         string name,
-        Guid? tenantId,
         CancellationToken cancellationToken = default);
 }

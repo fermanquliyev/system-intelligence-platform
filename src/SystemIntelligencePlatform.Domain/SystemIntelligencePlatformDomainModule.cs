@@ -17,7 +17,6 @@ using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Emailing;
 using Volo.Abp.FeatureManagement;
 using Volo.Abp.Identity;
-using Volo.Abp.TenantManagement;
 
 namespace SystemIntelligencePlatform;
 
@@ -33,7 +32,6 @@ namespace SystemIntelligencePlatform;
     typeof(AbpEmailingModule),
     typeof(AbpIdentityDomainModule),
     typeof(AbpOpenIddictDomainModule),
-    typeof(AbpTenantManagementDomainModule),
     typeof(BlobStoringDatabaseDomainModule)
     )]
 public class SystemIntelligencePlatformDomainModule : AbpModule
@@ -44,8 +42,6 @@ public class SystemIntelligencePlatformDomainModule : AbpModule
         {
             options.IsEnabled = MultiTenancyConsts.IsEnabled;
         });
-
-
 
 #if DEBUG
         context.Services.Replace(ServiceDescriptor.Singleton<IEmailSender, NullEmailSender>());

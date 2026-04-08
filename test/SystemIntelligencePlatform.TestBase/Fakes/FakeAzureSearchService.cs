@@ -14,7 +14,7 @@ public class FakeAzureSearchService : IAzureSearchService, ITransientDependency
         return Task.CompletedTask;
     }
 
-    public Task<IncidentSearchResult> SearchAsync(string query, Guid? tenantId, int skip = 0, int take = 20)
+    public Task<IncidentSearchResult> SearchAsync(string query, int skip = 0, int take = 20)
     {
         return Task.FromResult(new IncidentSearchResult
         {

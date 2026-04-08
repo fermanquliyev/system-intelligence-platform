@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -10,9 +10,6 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Identity;
-using Volo.Abp.MultiTenancy;
-using SystemIntelligencePlatform.MultiTenancy;
-using Volo.Abp.TenantManagement;
 
 namespace SystemIntelligencePlatform.Data;
 
@@ -22,18 +19,12 @@ public class SystemIntelligencePlatformDbMigrationService : ITransientDependency
 
     private readonly IDataSeeder _dataSeeder;
     private readonly IEnumerable<ISystemIntelligencePlatformDbSchemaMigrator> _dbSchemaMigrators;
-    private readonly ITenantRepository _tenantRepository;
-    private readonly ICurrentTenant _currentTenant;
 
     public SystemIntelligencePlatformDbMigrationService(
         IDataSeeder dataSeeder,
-        ITenantRepository tenantRepository,
-        ICurrentTenant currentTenant,
         IEnumerable<ISystemIntelligencePlatformDbSchemaMigrator> dbSchemaMigrators)
     {
         _dataSeeder = dataSeeder;
-        _tenantRepository = tenantRepository;
-        _currentTenant = currentTenant;
         _dbSchemaMigrators = dbSchemaMigrators;
 
         Logger = NullLogger<SystemIntelligencePlatformDbMigrationService>.Instance;
@@ -53,59 +44,25 @@ public class SystemIntelligencePlatformDbMigrationService : ITransientDependency
         await MigrateDatabaseSchemaAsync();
         await SeedDataAsync();
 
-        Logger.LogInformation($"Successfully completed host database migrations.");
-
-        if (MultiTenancyConsts.IsEnabled)
-        {
-            
-            var tenants = await _tenantRepository.GetListAsync(includeDetails: true);
-
-            var migratedDatabaseSchemas = new HashSet<string>();
-            foreach (var tenant in tenants)
-            {
-                using (_currentTenant.Change(tenant.Id))
-                {
-                    if (tenant.ConnectionStrings.Any())
-                    {
-                        var tenantConnectionStrings = tenant.ConnectionStrings
-                            .Select(x => x.Value)
-                            .ToList();
-
-                        if (!migratedDatabaseSchemas.IsSupersetOf(tenantConnectionStrings))
-                        {
-                            await MigrateDatabaseSchemaAsync(tenant);
-
-                            migratedDatabaseSchemas.AddIfNotContains(tenantConnectionStrings);
-                        }
-                    }
-
-                    await SeedDataAsync(tenant);
-                }
-
-                Logger.LogInformation($"Successfully completed {tenant.Name} tenant database migrations.");
-            }
-
-            Logger.LogInformation("Successfully completed all database migrations.");
-        }
+        Logger.LogInformation("Successfully completed database migrations.");
         Logger.LogInformation("You can safely end this process...");
     }
 
-    private async Task MigrateDatabaseSchemaAsync(Tenant? tenant = null)
+    private async Task MigrateDatabaseSchemaAsync()
     {
-        Logger.LogInformation(
-            $"Migrating schema for {(tenant == null ? "host" : tenant.Name + " tenant")} database...");
-        
+        Logger.LogInformation("Migrating database schema...");
+
         foreach (var migrator in _dbSchemaMigrators)
         {
             await migrator.MigrateAsync();
         }
     }
 
-    private async Task SeedDataAsync(Tenant? tenant = null)
+    private async Task SeedDataAsync()
     {
-        Logger.LogInformation($"Executing {(tenant == null ? "host" : tenant.Name + " tenant")} database seed...");
-        
-        await _dataSeeder.SeedAsync(new DataSeedContext(tenant?.Id)
+        Logger.LogInformation("Executing database seed...");
+
+        await _dataSeeder.SeedAsync(new DataSeedContext(null)
             .WithProperty(IdentityDataSeedContributor.AdminEmailPropertyName,
                 SystemIntelligencePlatformConsts.AdminEmailDefaultValue)
             .WithProperty(IdentityDataSeedContributor.AdminPasswordPropertyName,

@@ -74,6 +74,10 @@ services:
       # API is HTTP in Docker; discovery and tokens must use same base URL
       AuthServer__Authority: "http://localhost:44397"
       AuthServer__RequireHttpsMetadata: "false"
+      AI__Provider: ${AI__Provider:-Google}
+      AI__Model: ${AI__Model:-gemma-3-4b-it}
+      AI__ApiKey: ${AI__ApiKey:-}
+      DataRetention__LogRetentionDays: ${DataRetention__LogRetentionDays:-90}
     ports:
       - "44397:8080"
 
@@ -95,6 +99,9 @@ services:
       RabbitMQ__Port: "5672"
       RabbitMQ__Username: guest
       RabbitMQ__Password: guest
+      AI__Provider: ${AI__Provider:-Google}
+      AI__Model: ${AI__Model:-gemma-3-4b-it}
+      AI__ApiKey: ${AI__ApiKey:-}
 
   angular:
     build:

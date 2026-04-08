@@ -4,14 +4,13 @@ using System.Threading.Tasks;
 namespace SystemIntelligencePlatform.Incidents;
 
 /// <summary>
-/// Pushes real-time events to connected clients, scoped by tenant.
-/// Infrastructure layer provides the self-hosted SignalR implementation.
+/// Pushes real-time events to connected clients.
 /// </summary>
 public interface IRealtimeNotifier
 {
-    Task NotifyIncidentCreatedAsync(Guid? tenantId, IncidentNotification notification);
-    Task NotifyIncidentUpdatedAsync(Guid? tenantId, IncidentNotification notification);
-    Task NotifyIncidentResolvedAsync(Guid? tenantId, IncidentNotification notification);
+    Task NotifyIncidentCreatedAsync(IncidentNotification notification);
+    Task NotifyIncidentUpdatedAsync(IncidentNotification notification);
+    Task NotifyIncidentResolvedAsync(IncidentNotification notification);
 }
 
 public class IncidentNotification
