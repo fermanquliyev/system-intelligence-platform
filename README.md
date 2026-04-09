@@ -11,6 +11,7 @@ The repository is still named **system-intelligence-platform**; the product name
 - **AI-powered analysis** — `LlmIncidentAiAnalyzer` (Google Gemini-compatible API) with automatic fallback to `LocalIncidentAiAnalyzer` when no API key is set or the call fails.
 - **Real-time updates** — SignalR broadcasts to all connected, authenticated clients.
 - **Self-hosted** — One `docker-compose up` stack: Postgres, RabbitMQ, API, worker, Angular.
+- **Advanced intelligence (optional LLM)** — Incident AI Copilot, PostgreSQL full-text log search, saved queries, global and per-incident timelines, metrics ingest with correlation charts, persisted alert rules with history, log clustering, playbook runs, log source configuration (host adapters may be stubs until you plug in real file/HTTP/syslog listeners), assignee and merge metadata on incidents, and PII masking on log APIs. Everything except outbound LLM calls works offline: use `DbMigrator` after pulling changes so new EF migrations apply.
 
 ## Quick start
 

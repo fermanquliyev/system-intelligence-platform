@@ -16,6 +16,7 @@ using SystemIntelligencePlatform.EntityFrameworkCore;
 using SystemIntelligencePlatform.Incidents;
 using SystemIntelligencePlatform.InstanceConfiguration;
 using SystemIntelligencePlatform.LogEvents;
+using SystemIntelligencePlatform.Security;
 
 namespace SystemIntelligencePlatform.BackgroundWorker;
 
@@ -144,6 +145,7 @@ public class LogIngestionConsumerService : BackgroundService
         var dbContext = scope.ServiceProvider.GetRequiredService<SystemIntelligencePlatformDbContext>();
         var aiAnalyzer = scope.ServiceProvider.GetRequiredService<IIncidentAiAnalyzer>();
         var anomalyDetection = scope.ServiceProvider.GetRequiredService<AnomalyDetectionService>();
+        var piiDetector = scope.ServiceProvider.GetRequiredService<IPiiDetector>();
 
         var hashSignature = ComputeHashSignature(logEventMessage);
 
@@ -158,7 +160,8 @@ public class LogIngestionConsumerService : BackgroundService
             Source = logEventMessage.Source,
             ExceptionType = logEventMessage.ExceptionType,
             StackTrace = logEventMessage.StackTrace,
-            CorrelationId = logEventMessage.CorrelationId
+            CorrelationId = logEventMessage.CorrelationId,
+            ContainsPii = piiDetector.ContainsPii(logEventMessage.Message)
         };
 
         dbContext.LogEvents.Add(logEvent);
@@ -249,6 +252,9 @@ public class LogIngestionConsumerService : BackgroundService
 
         var aiResult = await aiAnalyzer.AnalyzeAsync(recentMessages);
         incident.EnrichWithAiAnalysis(aiResult);
+
+        if (logEvent.ContainsPii)
+            incident.ContainsPii = true;
 
         await dbContext.SaveChangesAsync();
 

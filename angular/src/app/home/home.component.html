@@ -41,6 +41,7 @@
           <ul class="list-unstyled small dev-toc-list">
             <li><a href="/about#overview">Overview</a></li>
             <li><a href="/about#features">Features</a></li>
+            <li><a href="/about#advanced-features">Advanced platform features</a></li>
             <li><a href="/about#quick-start">Quick start</a></li>
             <li><a href="/about#architecture">Architecture</a></li>
             <li><a href="/about#configuration">Configuration</a></li>
@@ -74,7 +75,285 @@
             </li>
             <li><strong>Real-time updates</strong> — SignalR broadcasts to authenticated clients.</li>
             <li><strong>Self-hosted</strong> — Typical stack: Postgres, RabbitMQ, API, worker, Angular (e.g. <code>docker-compose up</code>).</li>
+            <li>
+              <strong>Advanced intelligence</strong> — Copilot chat, full-text log search, timelines, metrics, alert rules, clustering, playbooks, log source config, assignee/merge/PII workflows.
+              See <a href="/about#advanced-features">Advanced platform features</a> below.
+            </li>
           </ul>
+        </section>
+
+        <section id="advanced-features" class="dev-section">
+          <h2>Advanced platform features</h2>
+          <p class="text-muted">
+            The following capabilities ship with the current codebase. REST shapes follow ABP <strong>auto API controllers</strong>: base path
+            <code>/api/app</code> plus a <strong>kebab-case</strong> segment derived from the application service name (e.g.
+            <code>AiCopilotAppService</code> → <code>/api/app/ai-copilot</code>). HTTP verbs and action paths match ABP conventions (e.g.
+            <code>GetAnalysisAsync</code> → <code>GET …/analysis/:incidentId</code>).
+            In examples below, <code>:param</code> denotes a route parameter (replace with a real GUID or id).
+            Most features work offline; outbound LLM calls need
+            <code>AI__ApiKey</code> (or equivalent). After upgrades, run <strong>DbMigrator</strong> for EF migrations and permission seeds.
+          </p>
+
+          <h3 class="h5 mt-4">Per-feature reference (inputs &amp; outputs)</h3>
+          <p class="small text-muted mb-3">
+            Each paragraph is one feature. DTO and property names match the C# contracts in
+            <code>SystemIntelligencePlatform.Application.Contracts</code>.
+          </p>
+
+          <p id="feat-copilot" class="dev-feature-para">
+            <strong>AI Incident Copilot.</strong>
+            Service <code>IAiCopilotAppService</code> (<code>/api/app/ai-copilot</code>), permission <code>SystemIntelligencePlatform.Incidents.Copilot</code>.
+            <em>Input → output:</em>
+            <code>GetAnalysisAsync(Guid incidentId)</code> returns <code>CopilotAnalysisDto</code>:
+            <code>RootCauseHypothesis</code>, <code>SuggestedFixSteps</code>, <code>ConfidenceScore</code> (integer 0–100),
+            <code>SuggestedSeverity</code> (<code>IncidentSeverity</code>), optional <code>SeverityJustification</code>,
+            <code>PromptTemplateVersion</code>, <code>FromCache</code> (whether the result was served from cache).
+            <code>PostFollowUpAsync(Guid incidentId, CopilotFollowUpInput input)</code> — input: required <code>Message</code> (string, max 4000 characters);
+            persists conversation turns and returns <code>CopilotMessageDto</code> with <code>IncidentId</code>, <code>Role</code> (<code>User</code>,
+            <code>Assistant</code>, or <code>System</code>), <code>Content</code>, plus creation audit fields.
+            <code>GetConversationAsync(Guid incidentId)</code> returns <code>IReadOnlyList&lt;CopilotMessageDto&gt;</code> for that incident.
+            Orchestration uses versioned prompt templates, cache keys from incident/log context, and <code>IIncidentAiAnalyzer</code> (Google LLM path or local fallback).
+            UI: incident detail Copilot panel; client state via <code>@ngrx/component-store</code>.
+          </p>
+
+          <p id="feat-assign" class="dev-feature-para">
+            <strong>Incident assignee.</strong>
+            <code>IIncidentAppService.AssignAsync(Guid id, AssignIncidentInput input)</code> (<code>POST /api/app/incident/:id/assign</code> with JSON body),
+            permission <code>SystemIntelligencePlatform.Incidents.Assign</code>.
+            <em>Input:</em> <code>AssignIncidentInput.UserId</code> — nullable <code>Guid</code> (null clears assignee).
+            <em>Output:</em> updated <code>IncidentDto</code> including <code>AssignedUserId</code> and resolved <code>AssigneeUserName</code> when available.
+            Listing endpoints omit incidents that are merged into another (<code>MergedIntoIncidentId</code> not null) so duplicates stay out of the main list.
+          </p>
+
+          <p id="feat-merge-dto" class="dev-feature-para">
+            <strong>Incident merge metadata (read model).</strong>
+            <code>IncidentDto</code> exposes merge and PII flags for the UI and integrations:
+            <code>MergedIntoIncidentId</code> (nullable) points to the canonical incident when this row is a child;
+            <code>MergedChildIncidentIds</code> lists child ids when this incident is canonical;
+            <code>ContainsPii</code> indicates sensitive content was detected on related data.
+            <code>GetMergedChildrenAsync(Guid canonicalIncidentId)</code> (<code>GET /api/app/incident/merged-children/:canonicalIncidentId</code>) returns
+            <code>IReadOnlyList&lt;IncidentDto&gt;</code> for merged children.
+          </p>
+
+          <p id="feat-merge-scan" class="dev-feature-para">
+            <strong>Incident deduplication scan.</strong>
+            <code>IIncidentMergeAppService.ScanAndMergeAsync(Guid? applicationId)</code> (<code>/api/app/incident-merge</code>; POST action
+            <code>scan-and-merge</code> with optional <code>applicationId</code> query).
+            <em>Output:</em> <code>int</code> — number of merge operations applied (title/signature similarity heuristics in the application layer).
+            Use after ingest or from an admin workflow; merged incidents are linked in the database and surfaced via <code>IncidentDto</code> and
+            <code>GetMergedChildrenAsync</code>.
+          </p>
+
+          <p id="feat-pii" class="dev-feature-para">
+            <strong>PII detection and masking.</strong>
+            Type <code>IPiiDetector</code> (implementation <code>PiiDetector</code>, regex-oriented for emails, etc.) flags and masks text at API boundaries.
+            Log search respects <code>LogSearchInput.RevealSensitive</code>: raw text is only returned if the caller is granted
+            <code>SystemIntelligencePlatform.LogEvents.ViewUnmasked</code>; otherwise messages are masked.
+            <code>LogEventSearchItemDto.ContainsPii</code> and <code>IncidentDto.ContainsPii</code> expose the flag to clients.
+            The background worker can set <code>ContainsPii</code> on ingested <code>LogEvent</code> rows and propagate to incidents.
+          </p>
+
+          <p id="feat-log-search" class="dev-feature-para">
+            <strong>Full-text log search.</strong>
+            <code>ILogSearchAppService.SearchAsync(LogSearchInput input)</code> (<code>GET /api/app/log-search/search</code> with query parameters bound to
+            <code>LogSearchInput</code>), permission
+            <code>SystemIntelligencePlatform.LogEvents.Search</code>.
+            <em>Input</em> <code>LogSearchInput</code> extends paging/sorting: <code>Query</code> (optional text),
+            <code>UseFullText</code> (default true — PostgreSQL <code>tsvector</code> / GIN index path),
+            optional <code>ApplicationId</code>, <code>MinLevel</code> (<code>LogLevel</code>), <code>FromUtc</code>, <code>ToUtc</code>,
+            <code>RevealSensitive</code>, plus <code>SkipCount</code> / <code>MaxResultCount</code> / <code>Sorting</code>.
+            <em>Output:</em> <code>PagedResultDto&lt;LogEventSearchItemDto&gt;</code> — each item: <code>Id</code>, <code>ApplicationId</code>,
+            <code>ApplicationName</code>, <code>Level</code>, <code>Message</code> (masked unless allowed), <code>Timestamp</code>, <code>ContainsPii</code>.
+            UI: <code>/log-search</code>.
+          </p>
+
+          <p id="feat-saved-search" class="dev-feature-para">
+            <strong>Saved log queries.</strong>
+            Same service, <code>LogEvents.Search</code> where noted.
+            <code>CreateSavedAsync(CreateSavedLogSearchDto input)</code> — <em>input:</em> <code>Name</code> (required, max 128), <code>FilterJson</code> (required, opaque JSON storing filter state, e.g. query + flags).
+            <em>Output:</em> <code>SavedLogSearchDto</code> (<code>Id</code>, <code>Name</code>, <code>FilterJson</code>, audit fields).
+            <code>GetSavedListAsync()</code> → <code>ListResultDto&lt;SavedLogSearchDto&gt;</code>.
+            <code>DeleteSavedAsync(Guid id)</code> → void (deletes only the current user’s saved row; otherwise authorization fails).
+            HTTP: <code>POST /api/app/log-search/saved</code>, <code>GET /api/app/log-search/saved</code>, <code>DELETE /api/app/log-search/saved/:id</code>.
+          </p>
+
+          <p id="feat-global-timeline" class="dev-feature-para">
+            <strong>Global incident timeline.</strong>
+            <code>IIncidentAppService.GetGlobalTimelineAsync(GetGlobalTimelineInput input)</code>, permission
+            <code>SystemIntelligencePlatform.Incidents.Timeline</code>.
+            <em>Input</em> <code>GetGlobalTimelineInput</code>: inherits paging/sorting; filters <code>ApplicationId</code>, <code>Severity</code>,
+            <code>FromUtc</code>, <code>ToUtc</code>, optional <code>TimeScale</code> hint for UI bucketing.
+            <em>Output:</em> <code>PagedResultDto&lt;IncidentTimelineItemDto&gt;</code> — items include <code>Id</code>, <code>Timestamp</code>, <code>Title</code>,
+            <code>Severity</code>, <code>Status</code>, <code>ApplicationName</code>, <code>Kind</code> (e.g. incident).
+            UI: <code>/timeline</code>.
+          </p>
+
+          <p id="feat-root-timeline" class="dev-feature-para">
+            <strong>Per-incident root-cause timeline.</strong>
+            <code>GetRootCauseTimelineAsync(Guid incidentId)</code> (<code>GET /api/app/incident/:incidentId/root-cause-timeline</code>),
+            <code>Incidents.Timeline</code>.
+            <em>Output:</em> <code>IReadOnlyList&lt;IncidentRootCauseTimelineItemDto&gt;</code> — each item: <code>EventType</code>, <code>TimestampUtc</code>,
+            <code>Title</code>, optional <code>Detail</code>, <code>IsCritical</code> (ordered narrative of logs/events around the incident window).
+            Shown on incident detail as a compact timeline strip.
+          </p>
+
+          <p id="feat-metrics-ingest" class="dev-feature-para">
+            <strong>Metrics ingestion.</strong>
+            <code>IMetricAppService.IngestAsync(MetricBatchIngestDto input)</code> (<code>POST /api/app/metric/ingest</code>),
+            permission <code>SystemIntelligencePlatform.Metrics.Ingest</code>.
+            <em>Input:</em> <code>Samples</code> — non-empty list of <code>MetricSampleIngestDto</code>: <code>ApplicationId</code>, <code>Name</code> (metric name, max 128),
+            <code>Timestamp</code>, <code>Value</code> (<code>double</code>), optional <code>TagsJson</code> (max 2000).
+            <em>Output:</em> none (writes <code>MetricSample</code> rows). UI sample button on <code>/metrics</code> posts one synthetic point for testing.
+          </p>
+
+          <p id="feat-metrics-series" class="dev-feature-para">
+            <strong>Metric time series query.</strong>
+            <code>GetSeriesAsync(GetMetricSeriesInput input)</code> (<code>GET /api/app/metric/series</code> with query-bound properties),
+            permission <code>SystemIntelligencePlatform.Metrics.Default</code>.
+            <em>Input:</em> <code>ApplicationId</code>, <code>Name</code>, <code>FromUtc</code>, <code>ToUtc</code>, <code>MaxPoints</code> (default 500 cap on returned rows).
+            <em>Output:</em> <code>MetricSeriesDto</code> — <code>Name</code> and <code>Points</code> as <code>List&lt;MetricSeriesPointDto&gt;</code>
+            (<code>Timestamp</code>, <code>Value</code>), ascending by time.
+          </p>
+
+          <p id="feat-metrics-correlation" class="dev-feature-para">
+            <strong>Metrics correlation around an incident.</strong>
+            <code>GetCorrelationForIncidentAsync(Guid incidentId)</code> (<code>GET /api/app/metric/correlation-for-incident/:incidentId</code>),
+            <code>Metrics.Default</code>.
+            <em>Output:</em> <code>IReadOnlyList&lt;MetricSeriesDto&gt;</code> — for the incident’s application and time window (incident first/last occurrence ± padding),
+            up to several distinct metric <code>Name</code> series with points loaded via the same series query (implementation caps distinct names).
+            UI renders small sparklines per series on <code>/metrics</code>.
+          </p>
+
+          <p id="feat-alert-rules" class="dev-feature-para">
+            <strong>Alert rules (CRUD and enablement).</strong>
+            <code>IAlertRuleAppService</code> (<code>/api/app/alert-rule</code>), permissions <code>AlertRules.Default</code> (read) and <code>AlertRules.Manage</code> (mutations).
+            <code>GetAsync(Guid id)</code> → <code>AlertRuleDto</code>.
+            <code>GetListAsync(PagedAndSortedResultRequestDto)</code> → <code>PagedResultDto&lt;AlertRuleDto&gt;</code>.
+            <code>CreateAsync(CreateUpdateAlertRuleDto)</code> / <code>UpdateAsync(id, CreateUpdateAlertRuleDto)</code> → <code>AlertRuleDto</code>.
+            <code>CreateUpdateAlertRuleDto</code>: <code>Name</code> (required, max 256), <code>IsEnabled</code>, <code>DefinitionJson</code> (required JSON string),
+            optional <code>SeverityOverride</code>, optional scoped <code>ApplicationId</code>.
+            <code>DeleteAsync(Guid id)</code>.
+            <code>SetEnabledAsync(Guid id, bool isEnabled)</code> (<code>PUT …/:id/set-enabled?isEnabled=</code>) → updated <code>AlertRuleDto</code>.
+            <code>AlertRuleDto</code> mirrors persisted fields including audit columns from ABP.
+          </p>
+
+          <p id="feat-alert-eval" class="dev-feature-para">
+            <strong>Alert rule evaluation and history.</strong>
+            <code>GetHistoryAsync(PagedAndSortedResultRequestDto)</code> → <code>PagedResultDto&lt;AlertHistoryDto&gt;</code> — each row:
+            <code>AlertRuleId</code>, optional <code>ApplicationId</code>, <code>PayloadJson</code> (JSON payload describing the firing), <code>FiredAt</code>, creation audit.
+            <code>EvaluateNowAsync(Guid? applicationId)</code> (<code>POST …/evaluate-now</code>) runs all enabled rules against the last hour of logs per application
+            (single app if <code>applicationId</code> set; otherwise every monitored application), inserts history when thresholds match, returns <code>int</code> fire count.
+            <code>DefinitionJson</code> deserializes to <code>AlertRuleDefinitionModel</code> with optional <code>minErrorsLastHour</code> and/or <code>minWarningsLastHour</code>
+            (JSON property names snake-cased as in the model). UI: <code>/alert-rules</code>.
+          </p>
+
+          <p id="feat-anomaly-domain" class="dev-feature-para">
+            <strong>Adaptive anomaly detection (domain, incident creation path).</strong>
+            <code>AnomalyDetectionService.Evaluate(AnomalyMetrics metrics, LogLevel logLevel)</code> returns <code>AnomalyDetectionResult</code>:
+            <code>ShouldTrigger</code>, <code>Reason</code> (<code>None</code>, <code>SpikeDetected</code>, <code>BurstDetected</code>, <code>ImmediateCritical</code>, <code>ZScoreSpike</code>),
+            <code>SuggestedSeverity</code>.
+            Uses 5-minute spike ratio vs hourly baseline, 1-hour burst vs 2× baseline, immediate trigger on <code>Critical</code> log level, new-signature absolute thresholds when baseline is zero,
+            and <strong>Z-score</strong> on 1-hour volume when baseline &gt; 0 and standard deviation &gt; 0 (evaluated before spike/burst so large statistical deviations can win first).
+            <em>Inputs</em> are aggregate counts in <code>AnomalyMetrics</code> (<code>EventsLast5Min</code>, <code>EventsLast1Hour</code>, <code>EventsLast24Hours</code>,
+            <code>AverageHourlyBaseline</code>, <code>StandardDeviation</code>). The worker uses this when deciding whether to open or update incidents.
+          </p>
+
+          <p id="feat-log-cluster" class="dev-feature-para">
+            <strong>Log clustering.</strong>
+            <code>ILogClusterAppService</code> (<code>/api/app/log-cluster</code>), <code>LogEvents.Default</code> for list; <code>RunClusteringAsync</code> requires
+            <code>LogEvents.Search</code>.
+            <code>GetListAsync(PagedAndSortedResultRequestDto)</code> → <code>PagedResultDto&lt;LogClusterDto&gt;</code> — <code>ApplicationId</code>, <code>SignatureHash</code>
+            (hash of digit-normalized template), <code>Summary</code>, <code>FirstSeen</code>, <code>LastSeen</code>, <code>EventCount</code>, audit fields.
+            <code>RunClusteringAsync(Guid? applicationId)</code> (<code>POST …/run-clustering</code>) processes a bounded batch of unclustered <code>LogEvent</code> rows,
+            groups by template hash, upserts <code>LogCluster</code>, sets <code>LogEvent.ClusterId</code>, returns <code>int</code> (assignment count).
+            UI: <code>/grouped-logs</code>.
+          </p>
+
+          <p id="feat-playbooks" class="dev-feature-para">
+            <strong>Playbooks.</strong>
+            <code>IPlaybookAppService</code> (<code>/api/app/playbook</code>), permissions <code>Playbooks.Default</code>, <code>Playbooks.Manage</code> (create/delete),
+            <code>Playbooks.Run</code> (run and complete steps).
+            <code>GetAsync</code> / <code>GetListAsync</code> → <code>PlaybookDto</code> with <code>Name</code>, <code>Description</code>, <code>TriggerDefinitionJson</code>, <code>IsActive</code>,
+            <code>Steps</code> as <code>List&lt;PlaybookStepDto&gt;</code> (<code>SortOrder</code>, <code>Title</code>, <code>Body</code>).
+            <code>CreateAsync(CreatePlaybookDto)</code> — input: <code>Name</code>, optional <code>Description</code>, <code>TriggerDefinitionJson</code>, <code>Steps</code> as
+            <code>List&lt;CreatePlaybookStepDto&gt;</code> (<code>SortOrder</code>, <code>Title</code>, <code>Body</code>).
+            <code>DeleteAsync(Guid id)</code> removes playbook steps and any runs.
+            <code>RunForIncidentAsync(Guid playbookId, Guid incidentId)</code> (<code>POST …/run-for-incident</code> with query params) → <code>PlaybookRunDto</code>:
+            <code>PlaybookId</code>, <code>IncidentId</code>, <code>Status</code> (<code>InProgress</code>, <code>Completed</code>, <code>Cancelled</code>), <code>StartedAt</code>, optional <code>CompletedAt</code>,
+            <code>RunSteps</code> as <code>List&lt;PlaybookRunStepDto&gt;</code> (<code>StepOrder</code>, <code>Title</code>, <code>IsCompleted</code>, <code>CompletedAt</code>).
+            <code>CompleteRunStepAsync(Guid runId, int stepOrder)</code> marks a step done; when all steps complete, run <code>Status</code> becomes <code>Completed</code>.
+            <code>GetActiveRunAsync(Guid incidentId)</code> (<code>GET …/active-run?incidentId=</code>) → <code>PlaybookRunDto</code> or null.
+            UI: <code>/playbooks</code>.
+          </p>
+
+          <p id="feat-log-sources" class="dev-feature-para">
+            <strong>Log source configuration.</strong>
+            <code>ILogSourceConfigurationAppService</code> (<code>/api/app/log-source-configuration</code>), <code>LogSources.Default</code> / <code>LogSources.Manage</code>.
+            DTO <code>LogSourceConfigurationDto</code>: <code>Name</code>, <code>SourceType</code> (<code>File</code> = 0, <code>Http</code> = 1, <code>Syslog</code> = 2), <code>IsEnabled</code>, <code>SettingsJson</code>.
+            <code>CreateAsync(CreateUpdateLogSourceConfigurationDto)</code> / <code>UpdateAsync(id, …)</code> use the same shape for mutable fields.
+            <code>SetEnabledAsync(id, bool isEnabled)</code> (<code>PUT …/:id/set-enabled</code>) toggles without full update.
+            The host registers <code>ILogSourceAdapter</code> implementations (file / HTTP / syslog); shipped stubs can be replaced with real listeners.
+            UI: <code>/log-sources</code>.
+          </p>
+
+          <h3 class="h5 mt-4">Signed-in Angular routes (reference)</h3>
+          <p class="small text-muted mb-2">All routes require authentication and policy checks as configured in <code>app.routes.ts</code> / <code>route.provider.ts</code>.</p>
+          <div class="table-responsive">
+            <table class="table table-sm table-striped dev-table align-middle">
+              <thead>
+                <tr>
+                  <th scope="col">Route</th>
+                  <th scope="col">Purpose</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>/dashboard</code></td>
+                  <td>Overview widgets</td>
+                </tr>
+                <tr>
+                  <td><code>/applications</code></td>
+                  <td>Monitored applications &amp; API keys</td>
+                </tr>
+                <tr>
+                  <td><code>/incidents</code>, <code>/incidents/:id</code></td>
+                  <td>List, detail (status, assignee, comments, Copilot, timeline, PII/merge badges)</td>
+                </tr>
+                <tr>
+                  <td><code>/timeline</code></td>
+                  <td>Global incident timeline</td>
+                </tr>
+                <tr>
+                  <td><code>/log-search</code></td>
+                  <td>Full-text log search &amp; saved queries</td>
+                </tr>
+                <tr>
+                  <td><code>/alert-rules</code></td>
+                  <td>Alert rules &amp; history</td>
+                </tr>
+                <tr>
+                  <td><code>/metrics</code></td>
+                  <td>Metric series &amp; incident correlation</td>
+                </tr>
+                <tr>
+                  <td><code>/grouped-logs</code></td>
+                  <td>Log clusters &amp; clustering job</td>
+                </tr>
+                <tr>
+                  <td><code>/playbooks</code></td>
+                  <td>Playbook definitions &amp; runs</td>
+                </tr>
+                <tr>
+                  <td><code>/log-sources</code></td>
+                  <td>Log source configuration</td>
+                </tr>
+                <tr>
+                  <td><code>/instance-settings</code></td>
+                  <td>Instance configuration &amp; migrations</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section id="quick-start" class="dev-section">
@@ -185,8 +464,9 @@
         <section id="angular-ui" class="dev-section">
           <h2>Angular UI</h2>
           <p>
-            Single-instance web UI: dashboard, applications, incidents, and settings. No tenant switcher, tenant headers,
-            or per-tenant routing — one deployment maps to one backend.
+            Single-instance web UI: dashboard, applications, incidents, search, timelines, metrics, alerting, clustering,
+            playbooks, log sources, and settings. No tenant switcher, tenant headers, or per-tenant routing — one deployment maps to one backend.
+            A route map is listed under <a href="/about#advanced-features">Advanced platform features</a>.
           </p>
           <h3 class="h5 mt-4">Requirements</h3>
           <p class="mb-2">Node.js 18+, npm (or yarn).</p>

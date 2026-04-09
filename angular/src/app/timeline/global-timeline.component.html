@@ -1,0 +1,36 @@
+<div class="container-fluid">
+  <h4 class="mb-3">{{ '::Menu:GlobalTimeline' | abpLocalization }}</h4>
+  <div class="row mb-3">
+    <div class="col-md-3">
+      <label class="form-label small">{{ '::Incidents.Application' | abpLocalization }} (id)</label>
+      <input class="form-control form-control-sm" [(ngModel)]="applicationId" (change)="load()" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small">{{ '::Incidents.Severity' | abpLocalization }}</label>
+      <select class="form-select form-select-sm" [(ngModel)]="severity" (change)="load()">
+        <option [ngValue]="null">—</option>
+        <option [ngValue]="0">Low</option>
+        <option [ngValue]="1">Medium</option>
+        <option [ngValue]="2">High</option>
+        <option [ngValue]="3">Critical</option>
+      </select>
+    </div>
+    <div class="col-md-6 d-flex align-items-end gap-2">
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="zoom(1.2)">{{ '::Timeline.ZoomIn' | abpLocalization }}</button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" (click)="zoom(0.8)">{{ '::Timeline.ZoomOut' | abpLocalization }}</button>
+    </div>
+  </div>
+  <div class="card border-0 shadow-sm">
+    <div class="card-body overflow-auto">
+      <div class="d-flex gap-2 flex-nowrap" [style.transform]="'scaleX(' + timeScale + ')'" style="transform-origin: left center;">
+        <a *ngFor="let it of items" class="text-decoration-none text-dark border rounded p-2 flex-shrink-0"
+           [routerLink]="['/incidents', it.id]" style="min-width: 160px;">
+          <div class="small text-muted">{{ it.timestamp | date:'short' }}</div>
+          <div class="fw-semibold small">{{ it.title }}</div>
+          <div class="small">{{ it.applicationName }}</div>
+        </a>
+      </div>
+      <p class="text-muted small mt-2 mb-0" *ngIf="items.length === 0">{{ '::Dashboard.NoTrendDataAvailable' | abpLocalization }}</p>
+    </div>
+  </div>
+</div>

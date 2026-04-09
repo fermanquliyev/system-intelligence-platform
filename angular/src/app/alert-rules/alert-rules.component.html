@@ -1,0 +1,38 @@
+<div class="container-fluid">
+  <h4 class="mb-3">{{ '::AlertRules.Title' | abpLocalization }}</h4>
+  <div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+          <label class="form-label small">{{ '::Name' | abpLocalization }}</label>
+          <input class="form-control form-control-sm" [(ngModel)]="name" />
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small">{{ '::AlertRules.Definition' | abpLocalization }}</label>
+          <input class="form-control form-control-sm font-monospace" [(ngModel)]="definitionJson" />
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-primary btn-sm w-100" (click)="create()">{{ '::Save' | abpLocalization }}</button>
+        </div>
+      </div>
+      <button class="btn btn-outline-secondary btn-sm mt-2" (click)="evaluate()">{{ '::AlertRules.History' | abpLocalization }} (evaluate)</button>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h6>{{ '::AlertRules.Title' | abpLocalization }}</h6>
+      <ul class="list-group list-group-flush">
+        <li *ngFor="let r of rules" class="list-group-item d-flex justify-content-between align-items-center">
+          <span>{{ r.name }}</span>
+          <button class="btn btn-sm btn-outline-secondary" (click)="toggle(r)">{{ r.isEnabled ? ('::AlertRules.Enabled' | abpLocalization) : 'off' }}</button>
+        </li>
+      </ul>
+    </div>
+    <div class="col-md-6">
+      <h6>{{ '::AlertRules.History' | abpLocalization }}</h6>
+      <ul class="small list-unstyled">
+        <li *ngFor="let h of history">{{ h.firedAt | date:'short' }} — {{ h.payloadJson }}</li>
+      </ul>
+    </div>
+  </div>
+</div>

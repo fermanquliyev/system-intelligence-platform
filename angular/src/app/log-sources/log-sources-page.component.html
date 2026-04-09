@@ -1,0 +1,62 @@
+<div class="container-fluid py-3">
+  <h4 class="mb-3">{{ '::LogSources.Title' | abpLocalization }}</h4>
+  <p class="text-muted small">{{ '::LogSources.StubHint' | abpLocalization }}</p>
+  <p class="text-muted small" *ngIf="error">{{ error }}</p>
+
+  <div class="card mb-4" *abpPermission="'SystemIntelligencePlatform.LogSources.Manage'">
+    <div class="card-header small">{{ '::Name' | abpLocalization }}</div>
+    <div class="card-body row g-2 align-items-end">
+      <div class="col-md-3">
+        <input class="form-control form-control-sm" [(ngModel)]="name" placeholder="Name" />
+      </div>
+      <div class="col-md-2">
+        <select class="form-select form-select-sm" [(ngModel)]="sourceType">
+          <option [ngValue]="0">File</option>
+          <option [ngValue]="1">HTTP</option>
+          <option [ngValue]="2">Syslog</option>
+        </select>
+      </div>
+      <div class="col-md-5">
+        <input class="form-control form-control-sm" [(ngModel)]="settingsJson" placeholder="{}" />
+      </div>
+      <div class="col-md-2">
+        <button type="button" class="btn btn-primary btn-sm w-100" (click)="create()">
+          {{ '::Save' | abpLocalization }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-sm">
+      <thead>
+        <tr>
+          <th>{{ '::Name' | abpLocalization }}</th>
+          <th>{{ '::Type' | abpLocalization }}</th>
+          <th>{{ '::Applications.Active' | abpLocalization }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let x of items">
+          <td>{{ x.name }}</td>
+          <td>{{ x.sourceType }}</td>
+          <td>{{ x.isEnabled }}</td>
+          <td class="text-end">
+            <button type="button" class="btn btn-sm btn-outline-secondary me-1" (click)="toggle(x)">
+              Toggle
+            </button>
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-danger"
+              *abpPermission="'SystemIntelligencePlatform.LogSources.Manage'"
+              (click)="delete(x.id)"
+            >
+              {{ '::Delete' | abpLocalization }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

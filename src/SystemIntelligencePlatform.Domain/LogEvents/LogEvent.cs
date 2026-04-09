@@ -16,6 +16,10 @@ public class LogEvent : BasicAggregateRoot<Guid>
     public DateTime Timestamp { get; set; }
     public Guid? IncidentId { get; set; }
 
+    public Guid? ClusterId { get; set; }
+
+    public bool ContainsPii { get; set; }
+
     protected LogEvent() { }
 
     public LogEvent(

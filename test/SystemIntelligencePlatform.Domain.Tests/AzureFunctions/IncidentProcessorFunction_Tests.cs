@@ -102,7 +102,7 @@ public class IncidentProcessorFunction_Tests
             EventsLast1Hour = 15, // Below burst threshold (baseline * 2 = 20)
             EventsLast24Hours = 400,
             AverageHourlyBaseline = 10, // Expected 5-min = 0.83, threshold = 2.5
-            StandardDeviation = 2
+            StandardDeviation = 10 // Keeps z-score below 2.5: (15-10)/10 = 0.5
         };
 
         // Act

@@ -1,9 +1,11 @@
+import * as AiCopilot from './ai-copilot';
 import * as Controllers from './controllers';
 import * as CostEstimation from './cost-estimation';
 import * as Dashboard from './dashboard';
 import * as Incidents from './incidents';
 import * as InstanceConfiguration from './instance-configuration';
 import * as LogIngestion from './log-ingestion';
+import * as LogSearch from './log-search';
 import * as MonitoredApplications from './monitored-applications';
 import * as Webhooks from './webhooks';
-export { Controllers, CostEstimation, Dashboard, Incidents, InstanceConfiguration, LogIngestion, MonitoredApplications, Webhooks };
+export { AiCopilot, Controllers, CostEstimation, Dashboard, Incidents, InstanceConfiguration, LogIngestion, LogSearch, MonitoredApplications, Webhooks };

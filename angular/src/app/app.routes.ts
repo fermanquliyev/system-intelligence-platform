@@ -48,4 +48,39 @@ export const APP_ROUTES: Routes = [
     loadComponent: () => import('./instance-settings/instance-settings.component').then(c => c.InstanceSettingsComponent),
     canActivate: [authGuard, permissionGuard],
   },
+  {
+    path: 'timeline',
+    loadComponent: () => import('./timeline/global-timeline.component').then(c => c.GlobalTimelineComponent),
+    canActivate: [authGuard, permissionGuard],
+  },
+  {
+    path: 'log-search',
+    loadComponent: () => import('./log-search/log-search-page.component').then(c => c.LogSearchPageComponent),
+    canActivate: [authGuard, permissionGuard],
+  },
+  {
+    path: 'alert-rules',
+    loadComponent: () => import('./alert-rules/alert-rules.component').then(c => c.AlertRulesComponent),
+    canActivate: [authGuard, permissionGuard],
+  },
+  {
+    path: 'metrics',
+    loadComponent: () => import('./metrics/metrics-explorer.component').then(c => c.MetricsExplorerComponent),
+    canActivate: [authGuard, permissionGuard],
+  },
+  {
+    path: 'grouped-logs',
+    loadComponent: () => import('./log-clusters/log-clusters.component').then(c => c.LogClustersComponent),
+    canActivate: [authGuard, permissionGuard],
+  },
+  {
+    path: 'playbooks',
+    loadComponent: () => import('./playbooks/playbooks-page.component').then(c => c.PlaybooksPageComponent),
+    canActivate: [authGuard, permissionGuard],
+  },
+  {
+    path: 'log-sources',
+    loadComponent: () => import('./log-sources/log-sources-page.component').then(c => c.LogSourcesPageComponent),
+    canActivate: [authGuard, permissionGuard],
+  },
 ];

@@ -156,6 +156,17 @@
   }
 }
 
+.dev-feature-para {
+  margin-bottom: 1.25rem;
+  line-height: 1.65;
+  color: #334155;
+  font-size: 0.95rem;
+  code {
+    font-size: 0.82rem;
+    word-break: break-word;
+  }
+}
+
 // Footer
 .landing-footer {
   background: #fff;

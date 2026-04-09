@@ -25,5 +25,10 @@ public class IncidentDto : FullAuditedEntityDto<Guid>
     public int? ConfidenceScore { get; set; }
     public DateTime? AiAnalyzedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }
+    public Guid? AssignedUserId { get; set; }
+    public string? AssigneeUserName { get; set; }
+    public Guid? MergedIntoIncidentId { get; set; }
+    public bool ContainsPii { get; set; }
+    public List<Guid> MergedChildIncidentIds { get; set; } = new();
     public List<IncidentCommentDto> Comments { get; set; } = new();
 }

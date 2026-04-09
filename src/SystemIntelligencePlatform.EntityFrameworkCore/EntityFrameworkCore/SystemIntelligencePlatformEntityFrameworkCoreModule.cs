@@ -43,7 +43,7 @@ public class SystemIntelligencePlatformEntityFrameworkCoreModule : AbpModule
         {
             options.AddDefaultRepositories(includeAllEntities: true);
             options.AddRepository<MonitoredApplications.MonitoredApplication, Repositories.EfCoreMonitoredApplicationRepository>();
-            options.AddRepository<LogEvents.LogEvent, Repositories.EfCoreLogEventRepository>();
+            options.AddRepository<global::SystemIntelligencePlatform.LogEvents.LogEvent, Repositories.EfCoreLogEventRepository>();
             options.AddRepository<Incident, Repositories.EfCoreIncidentRepository>();
         });
 

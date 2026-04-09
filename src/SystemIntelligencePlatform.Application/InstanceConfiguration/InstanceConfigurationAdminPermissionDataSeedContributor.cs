@@ -35,5 +35,27 @@ public class InstanceConfigurationAdminPermissionDataSeedContributor : IDataSeed
             SystemIntelligencePlatformPermissions.InstanceConfiguration.Default, true);
         await _permissionManager.SetForRoleAsync(adminRole.Name,
             SystemIntelligencePlatformPermissions.InstanceConfiguration.Migrate, true);
+
+        foreach (var permission in new[]
+                 {
+                     SystemIntelligencePlatformPermissions.Incidents.Assign,
+                     SystemIntelligencePlatformPermissions.Incidents.Copilot,
+                     SystemIntelligencePlatformPermissions.Incidents.Timeline,
+                     SystemIntelligencePlatformPermissions.LogEvents.Default,
+                     SystemIntelligencePlatformPermissions.LogEvents.Search,
+                     SystemIntelligencePlatformPermissions.LogEvents.ViewUnmasked,
+                     SystemIntelligencePlatformPermissions.AlertRules.Default,
+                     SystemIntelligencePlatformPermissions.AlertRules.Manage,
+                     SystemIntelligencePlatformPermissions.Metrics.Default,
+                     SystemIntelligencePlatformPermissions.Metrics.Ingest,
+                     SystemIntelligencePlatformPermissions.Playbooks.Default,
+                     SystemIntelligencePlatformPermissions.Playbooks.Manage,
+                     SystemIntelligencePlatformPermissions.Playbooks.Run,
+                     SystemIntelligencePlatformPermissions.LogSources.Default,
+                     SystemIntelligencePlatformPermissions.LogSources.Manage
+                 })
+        {
+            await _permissionManager.SetForRoleAsync(adminRole.Name, permission, true);
+        }
     }
 }

@@ -72,6 +72,14 @@ public class LocalIncidentAiAnalyzer : IIncidentAiAnalyzer, ITransientDependency
             confidence += 25;
         result.ConfidenceScore = Math.Clamp(confidence, 0, 100);
 
+        result.SuggestedSeverity = messages.Any(m =>
+            m.Contains("critical", StringComparison.OrdinalIgnoreCase) ||
+            m.Contains("fatal", StringComparison.OrdinalIgnoreCase))
+            ? IncidentSeverity.Critical
+            : messages.Any(m => m.Contains("error", StringComparison.OrdinalIgnoreCase))
+                ? IncidentSeverity.High
+                : IncidentSeverity.Medium;
+
         return Task.FromResult(result);
     }
 

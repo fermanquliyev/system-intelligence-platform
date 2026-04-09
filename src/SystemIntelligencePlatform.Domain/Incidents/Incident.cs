@@ -29,6 +29,13 @@ public class Incident : FullAuditedAggregateRoot<Guid>
     public DateTime? ResolvedAt { get; set; }
     public Guid? ResolvedByUserId { get; set; }
 
+    public Guid? AssignedUserId { get; set; }
+
+    /// <summary>When set, this incident was merged into another and should be hidden from primary views.</summary>
+    public Guid? MergedIntoIncidentId { get; set; }
+
+    public bool ContainsPii { get; set; }
+
     public ICollection<IncidentComment> Comments { get; set; } = new List<IncidentComment>();
 
     protected Incident() { }
@@ -64,6 +71,17 @@ public class Incident : FullAuditedAggregateRoot<Guid>
         Status = IncidentStatus.Resolved;
         ResolvedAt = DateTime.UtcNow;
         ResolvedByUserId = userId;
+    }
+
+    public void MarkMergedInto(Guid canonicalIncidentId)
+    {
+        MergedIntoIncidentId = canonicalIncidentId;
+        Status = IncidentStatus.Closed;
+    }
+
+    public void AssignTo(Guid? userId)
+    {
+        AssignedUserId = userId;
     }
 
     public void EnrichWithAiAnalysis(AiAnalysisResult result)

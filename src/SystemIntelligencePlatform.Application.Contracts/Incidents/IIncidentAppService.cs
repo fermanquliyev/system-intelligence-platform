@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Volo.Abp.Application.Dtos;
 using Volo.Abp.Application.Services;
@@ -14,4 +15,12 @@ public interface IIncidentAppService : IApplicationService
     Task<IncidentCommentDto> AddCommentAsync(Guid incidentId, CreateIncidentCommentDto input);
     Task<PagedResultDto<IncidentCommentDto>> GetCommentsAsync(Guid incidentId, PagedResultRequestDto input);
     Task<IncidentSearchResultDto> SearchAsync(IncidentSearchRequestDto input);
+
+    Task<IncidentDto> AssignAsync(Guid id, AssignIncidentInput input);
+
+    Task<IReadOnlyList<IncidentDto>> GetMergedChildrenAsync(Guid canonicalIncidentId);
+
+    Task<PagedResultDto<IncidentTimelineItemDto>> GetGlobalTimelineAsync(GetGlobalTimelineInput input);
+
+    Task<IReadOnlyList<IncidentRootCauseTimelineItemDto>> GetRootCauseTimelineAsync(Guid incidentId);
 }

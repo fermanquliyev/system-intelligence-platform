@@ -1,0 +1,87 @@
+<div class="container-fluid py-3">
+  <h4 class="mb-3">{{ '::Metrics.Title' | abpLocalization }}</h4>
+  <p class="text-muted small" *ngIf="error">{{ error }}</p>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <label class="form-label small">{{ '::Incidents.Application' | abpLocalization }}</label>
+      <select class="form-select form-select-sm" [(ngModel)]="applicationId">
+        <option *ngFor="let a of applications" [value]="a.id">{{ a.name }}</option>
+      </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small">{{ '::Name' | abpLocalization }} (metric)</label>
+      <input class="form-control form-control-sm" [(ngModel)]="metricName" />
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small">From (UTC)</label>
+      <input type="datetime-local" class="form-control form-control-sm" [(ngModel)]="fromUtc" />
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small">To (UTC)</label>
+      <input type="datetime-local" class="form-control form-control-sm" [(ngModel)]="toUtc" />
+    </div>
+    <div class="col-md-1">
+      <label class="form-label small">Max</label>
+      <input type="number" class="form-control form-control-sm" [(ngModel)]="maxPoints" />
+    </div>
+    <div class="col-md-2 d-flex align-items-end gap-1 flex-wrap">
+      <button type="button" class="btn btn-primary btn-sm" (click)="loadSeries()">
+        {{ '::Search' | abpLocalization }}
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-secondary btn-sm"
+        *abpPermission="'SystemIntelligencePlatform.Metrics.Ingest'"
+        (click)="ingestSample()"
+      >
+        Ingest sample
+      </button>
+    </div>
+  </div>
+
+  <div class="card mb-4" *ngIf="series?.points?.length">
+    <div class="card-header small">{{ series!.name }} ({{ series!.points!.length }} points)</div>
+    <div class="card-body">
+      <svg viewBox="0 0 100 40" class="w-100" style="max-height: 120px" preserveAspectRatio="none">
+        <polyline
+          fill="none"
+          stroke="var(--bs-primary)"
+          stroke-width="0.8"
+          [attr.points]="polylinePoints(series!.points!)"
+        />
+      </svg>
+    </div>
+  </div>
+
+  <h5 class="mt-4">{{ '::Metrics.Correlation' | abpLocalization }}</h5>
+  <div class="row g-2 align-items-end mb-3">
+    <div class="col-md-4">
+      <label class="form-label small">{{ '::IncidentDetail.ID' | abpLocalization }}</label>
+      <input class="form-control form-control-sm" [(ngModel)]="incidentIdForCorrelation" />
+    </div>
+    <div class="col-md-2">
+      <button type="button" class="btn btn-primary btn-sm" (click)="loadCorrelation()">
+        {{ '::Search' | abpLocalization }}
+      </button>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-md-4" *ngFor="let s of correlation">
+      <div class="card">
+        <div class="card-header small py-1">{{ s.name }}</div>
+        <div class="card-body py-2" *ngIf="s.points?.length">
+          <svg viewBox="0 0 100 36" class="w-100" style="max-height: 80px" preserveAspectRatio="none">
+            <polyline
+              fill="none"
+              stroke="var(--bs-secondary-color)"
+              stroke-width="0.7"
+              [attr.points]="polylinePoints(s.points)"
+            />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

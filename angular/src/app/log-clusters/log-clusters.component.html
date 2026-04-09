@@ -1,0 +1,46 @@
+<div class="container-fluid py-3">
+  <h4 class="mb-3">{{ '::GroupedLogs.Title' | abpLocalization }}</h4>
+  <p class="text-muted small" *ngIf="error">{{ error }}</p>
+
+  <div class="row g-2 align-items-end mb-3">
+    <div class="col-md-4">
+      <label class="form-label small">{{ '::Incidents.Application' | abpLocalization }} (optional)</label>
+      <select class="form-select form-select-sm" [(ngModel)]="applicationFilter">
+        <option [ngValue]="null">All</option>
+        <option *ngFor="let a of applications" [ngValue]="a.id">{{ a.name }}</option>
+      </select>
+    </div>
+    <div class="col-md-3">
+      <button type="button" class="btn btn-primary btn-sm" (click)="runClustering()">
+        Run clustering
+      </button>
+      <span class="ms-2 small text-muted" *ngIf="lastRunResult !== null"
+        >Assigned: {{ lastRunResult }}</span
+      >
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-sm table-striped">
+      <thead>
+        <tr>
+          <th>{{ '::Name' | abpLocalization }}</th>
+          <th>{{ '::Incidents.Count' | abpLocalization }}</th>
+          <th>{{ '::Incidents.FirstSeen' | abpLocalization }}</th>
+          <th>{{ '::Incidents.LastSeen' | abpLocalization }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of clusters">
+          <td>
+            <div class="small text-break">{{ c.summary }}</div>
+            <code class="small text-muted">{{ c.signatureHash?.slice(0, 16) }}…</code>
+          </td>
+          <td>{{ c.eventCount }}</td>
+          <td>{{ c.firstSeen | date : 'short' }}</td>
+          <td>{{ c.lastSeen | date : 'short' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

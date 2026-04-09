@@ -12,6 +12,8 @@
         </span>
         <span class="badge bg-dark">{{ getStatusLabel(incident.status) }}</span>
         <span class="text-muted small">{{ incident.applicationName }}</span>
+        <span class="badge bg-warning text-dark ms-1" *ngIf="incident.containsPii">{{ '::Security.PiiWarning' | abpLocalization }}</span>
+        <span class="badge bg-secondary ms-1" *ngIf="incident.mergedIntoIncidentId">{{ '::DuplicateBadge' | abpLocalization }}</span>
       </div>
     </div>
     <div *abpPermission="'SystemIntelligencePlatform.Incidents.Resolve'">
@@ -22,9 +24,58 @@
     </div>
   </div>
 
+  <div class="row mb-3" *ngIf="incident">
+    <div class="col-md-4" *abpPermission="'SystemIntelligencePlatform.Incidents.Update'">
+      <label class="form-label small text-muted">{{ '::Incidents.Status' | abpLocalization }}</label>
+      <select class="form-select form-select-sm" [ngModel]="incident.status" (ngModelChange)="updateStatus($event)">
+        <option *ngFor="let o of statusOptions" [ngValue]="o.value">{{ o.key | abpLocalization }}</option>
+      </select>
+    </div>
+    <div class="col-md-8" *abpPermission="'SystemIntelligencePlatform.Incidents.Assign'">
+      <label class="form-label small text-muted">{{ '::Assignee' | abpLocalization }}</label>
+      <div class="input-group input-group-sm">
+        <input type="text" class="form-control font-monospace" [(ngModel)]="assignUserId"
+               [placeholder]="'::Assignee.Unassigned' | abpLocalization" />
+        <button class="btn btn-outline-primary" type="button" (click)="assign()">{{ '::Save' | abpLocalization }}</button>
+      </div>
+      <small class="text-muted" *ngIf="incident.assigneeUserName">{{ incident.assigneeUserName }}</small>
+    </div>
+  </div>
+
   <div class="row">
     <!-- Main Info -->
     <div class="col-md-8">
+      <!-- Root cause timeline -->
+      <div class="card border-0 shadow-sm mb-4" *abpPermission="'SystemIntelligencePlatform.Incidents.Timeline'">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <span class="fw-bold">{{ '::Timeline.Title' | abpLocalization }}</span>
+          <div class="btn-group btn-group-sm">
+            <button type="button" class="btn btn-outline-secondary" (click)="zoomTimeline(1.2)">{{ '::Timeline.ZoomIn' | abpLocalization }}</button>
+            <button type="button" class="btn btn-outline-secondary" (click)="zoomTimeline(0.8)">{{ '::Timeline.ZoomOut' | abpLocalization }}</button>
+          </div>
+        </div>
+        <div class="card-body overflow-auto" style="max-height: 220px;">
+          <div class="d-flex gap-2 flex-nowrap" [style.transform]="'scaleX(' + timelineScale + ')'" style="transform-origin: left center;">
+            <div *ngFor="let ev of timelineItems" class="border rounded p-2 flex-shrink-0"
+                 [class.border-danger]="ev.isCritical" style="min-width: 140px;">
+              <div class="small text-muted">{{ ev.timestampUtc | date:'short' }}</div>
+              <div class="fw-semibold small">{{ ev.title }}</div>
+              <div class="small text-truncate" style="max-width: 180px;" [title]="ev.detail">{{ ev.detail }}</div>
+            </div>
+          </div>
+          <p class="text-muted small mb-0 mt-2" *ngIf="timelineItems.length === 0">{{ '::Common.Loading' | abpLocalization }}</p>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm mb-4" *ngIf="mergedChildren.length">
+        <div class="card-header bg-white fw-bold">{{ '::MergedIncidents' | abpLocalization }}</div>
+        <div class="card-body py-2">
+          <ul class="mb-0 small">
+            <li *ngFor="let m of mergedChildren"><a [routerLink]="['/incidents', m.id]">{{ m.title }}</a></li>
+          </ul>
+        </div>
+      </div>
+
       <!-- Metrics -->
       <div class="row mb-4">
         <div class="col-md-3">
@@ -151,6 +202,45 @@
         <div class="card-body text-center text-muted py-4">
           <i class="fa fa-robot fa-2x mb-2 d-block"></i>
           {{ '::IncidentDetail.AIAnalysisPending' | abpLocalization }}
+        </div>
+      </div>
+
+      <!-- AI Copilot -->
+      <div class="card border-0 shadow-sm mb-4" *abpPermission="'SystemIntelligencePlatform.Incidents.Copilot'">
+        <div class="card-header bg-white fw-bold d-flex justify-content-between align-items-center">
+          <span><i class="fa fa-comments me-1 text-primary"></i> {{ '::Copilot.Title' | abpLocalization }}</span>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="refreshCopilot()">
+            {{ '::Copilot.Refresh' | abpLocalization }}
+          </button>
+        </div>
+        <div class="card-body">
+          <div *ngIf="copilotStore.loading()" class="text-muted small">{{ '::Copilot.Loading' | abpLocalization }}</div>
+          <div *ngIf="copilotStore.error()" class="text-danger small">{{ '::Copilot.Error' | abpLocalization }}</div>
+          <div *ngIf="copilotStore.streaming()" class="text-muted small">{{ '::Copilot.Streaming' | abpLocalization }}</div>
+          <ng-container *ngIf="copilotStore.analysis() as ca">
+            <p class="small mb-2"><strong>{{ '::Copilot.Explain' | abpLocalization }}:</strong> {{ ca['rootCauseHypothesis'] }}</p>
+            <p class="small mb-2"><strong>{{ '::Copilot.SuggestedFixes' | abpLocalization }}:</strong> {{ ca['suggestedFixSteps'] }}</p>
+            <div class="mb-2">
+              <div class="small text-muted mb-1">{{ '::Copilot.Confidence' | abpLocalization }}</div>
+              <div class="progress" style="height: 8px;">
+                <div class="progress-bar" [style.width.%]="ca['confidenceScore'] ?? 0"></div>
+              </div>
+            </div>
+          </ng-container>
+          <div class="border-top pt-3 mt-2">
+            <div *ngFor="let m of copilotStore.messages()" class="small mb-2">
+              <span class="badge bg-light text-dark me-1">{{ m.role }}</span> {{ m.content }}
+            </div>
+            <label class="form-label small">{{ '::Copilot.AskFollowUp' | abpLocalization }}</label>
+            <div class="input-group input-group-sm">
+              <textarea class="form-control" rows="2"
+                        [ngModel]="copilotStore.followUpText()"
+                        (ngModelChange)="copilotStore.setFollowUpText($event)"></textarea>
+              <button class="btn btn-primary" type="button" (click)="submitFollowUp()" [disabled]="copilotStore.streaming()">
+                {{ '::Copilot.Send' | abpLocalization }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

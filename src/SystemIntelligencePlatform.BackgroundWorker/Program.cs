@@ -4,6 +4,7 @@ using SystemIntelligencePlatform.InstanceConfiguration;
 using Microsoft.EntityFrameworkCore;
 using SystemIntelligencePlatform.EntityFrameworkCore;
 using SystemIntelligencePlatform.LogEvents;
+using SystemIntelligencePlatform.Security;
 
 // Allow DateTime.Kind=Local when writing to PostgreSQL timestamptz.
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -29,6 +30,7 @@ builder.Services.AddSingleton<IInstanceConfigurationProvider>(sp =>
 
 builder.Services.Configure<RabbitMqWorkerOptions>(builder.Configuration.GetSection(RabbitMqWorkerOptions.SectionName));
 builder.Services.AddSingleton<AnomalyDetectionService>();
+builder.Services.AddSingleton<IPiiDetector, PiiDetector>();
 builder.Services.AddLlmIncidentAiAnalyzer(builder.Configuration);
 builder.Services.AddHostedService<LogIngestionConsumerService>();
 

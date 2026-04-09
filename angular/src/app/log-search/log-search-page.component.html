@@ -1,0 +1,37 @@
+<div class="container-fluid">
+  <h4 class="mb-3">{{ '::LogSearch.Title' | abpLocalization }}</h4>
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <input class="form-control" [(ngModel)]="query" [placeholder]="'::Search' | abpLocalization" />
+    </div>
+    <div class="col-md-6 d-flex align-items-center gap-3 flex-wrap">
+      <label class="form-check-label"><input type="checkbox" [(ngModel)]="useFullText" class="form-check-input me-1" /> FTS</label>
+      <label class="form-check-label"><input type="checkbox" [(ngModel)]="revealSensitive" class="form-check-input me-1" /> {{ '::Logs.ShowUnmasked' | abpLocalization }}</label>
+      <button class="btn btn-primary btn-sm" (click)="search()">{{ '::Search' | abpLocalization }}</button>
+      <button class="btn btn-outline-secondary btn-sm" (click)="saveQuery()">{{ '::LogSearch.SaveQuery' | abpLocalization }}</button>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-9">
+      <div class="table-responsive">
+        <table class="table table-sm table-striped">
+          <thead><tr><th>{{ '::Incidents.Application' | abpLocalization }}</th><th>Level</th><th>Message</th><th>Time</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let row of items">
+              <td>{{ row.applicationName }}</td>
+              <td>{{ row.level }}</td>
+              <td><code class="small">{{ row.message }}</code></td>
+              <td>{{ row.timestamp | date:'short' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <h6>{{ '::LogSearch.SavedQueries' | abpLocalization }}</h6>
+      <ul class="small list-unstyled">
+        <li *ngFor="let s of saved">{{ s.name }}</li>
+      </ul>
+    </div>
+  </div>
+</div>

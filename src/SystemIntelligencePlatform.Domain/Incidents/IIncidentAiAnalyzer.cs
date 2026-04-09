@@ -21,4 +21,5 @@ public class AiAnalysisResult
     public string? SuggestedFix { get; set; }
     public string? SeverityJustification { get; set; }
     public int ConfidenceScore { get; set; }
+    public IncidentSeverity? SuggestedSeverity { get; set; }
 }

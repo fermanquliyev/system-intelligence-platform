@@ -45,6 +45,21 @@ public class AnomalyDetectionService : ITransientDependency
 
         var hasBaseline = metrics.AverageHourlyBaseline > 0;
 
+        // Z-score on 1-hour volume vs historical hourly distribution (when baseline exists)
+        if (hasBaseline && metrics.StandardDeviation > 1e-6)
+        {
+            var z = (metrics.EventsLast1Hour - metrics.AverageHourlyBaseline) / metrics.StandardDeviation;
+            if (z >= 2.5)
+            {
+                return new AnomalyDetectionResult
+                {
+                    ShouldTrigger = true,
+                    Reason = AnomalyReason.ZScoreSpike,
+                    SuggestedSeverity = DetermineSeverity(logLevel, metrics.EventsLast1Hour)
+                };
+            }
+        }
+
         // Rule 1: Spike detection (5-minute window)
         if (IsSpikeDetected(metrics, hasBaseline))
         {
@@ -119,5 +134,6 @@ public enum AnomalyReason
     None,
     SpikeDetected,
     BurstDetected,
-    ImmediateCritical
+    ImmediateCritical,
+    ZScoreSpike
 }

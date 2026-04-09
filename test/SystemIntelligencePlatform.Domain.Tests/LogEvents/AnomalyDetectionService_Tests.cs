@@ -80,19 +80,40 @@ public class AnomalyDetectionService_Tests
         result.ShouldTrigger.ShouldBeFalse();
     }
 
+    // --- Z-SCORE (evaluated before spike/burst when baseline + std dev exist) ---
+
+    [Fact]
+    public void ZScore_WhenHourlyVolumeExceeds2_5Sigma_ShouldTrigger()
+    {
+        var metrics = new AnomalyMetrics
+        {
+            EventsLast5Min = 1,
+            EventsLast1Hour = 30,
+            EventsLast24Hours = 200,
+            AverageHourlyBaseline = 10,
+            StandardDeviation = 4 // z = 20/4 = 5
+        };
+
+        var result = _sut.Evaluate(metrics, LogLevel.Error);
+
+        result.ShouldTrigger.ShouldBeTrue();
+        result.Reason.ShouldBe(AnomalyReason.ZScoreSpike);
+    }
+
     // --- BURST DETECTION ---
 
     [Fact]
     public void Burst_WhenEventsExceed2xBaseline_ShouldTrigger()
     {
         // Arrange: baseline = 50/hour. Burst threshold = 100.
+        // High std dev keeps z-score below 2.5 so burst detection wins (z = 60/25 = 2.4).
         var metrics = new AnomalyMetrics
         {
             EventsLast5Min = 5, // no spike (50/12*3 = 12.5)
             EventsLast1Hour = 110, // > 100, burst!
             EventsLast24Hours = 500,
             AverageHourlyBaseline = 50,
-            StandardDeviation = 8
+            StandardDeviation = 25
         };
 
         var result = _sut.Evaluate(metrics, LogLevel.Error);
@@ -105,12 +126,13 @@ public class AnomalyDetectionService_Tests
     public void Burst_WhenExactlyAtThreshold_ShouldNotTrigger()
     {
         // Arrange: baseline = 50/hour. Burst = exactly 100 (not >100).
+        // Std dev large enough that z-score does not fire at 100 events/hour.
         var metrics = new AnomalyMetrics
         {
             EventsLast5Min = 5,
             EventsLast1Hour = 100, // == 100, not > 100
             AverageHourlyBaseline = 50,
-            StandardDeviation = 5
+            StandardDeviation = 50
         };
 
         var result = _sut.Evaluate(metrics, LogLevel.Warning);

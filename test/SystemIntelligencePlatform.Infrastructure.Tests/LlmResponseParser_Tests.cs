@@ -61,8 +61,10 @@ public class LlmResponseParser_Tests
 
         LlmResponseParser.TryParse(json, out var result).ShouldBeTrue();
         result.ShouldNotBeNull();
-        result!.SeverityJustification.ShouldContain("[PII detected: email]");
-        result.SeverityJustification!.ShouldContain("User email visible");
+        var justification = result!.SeverityJustification;
+        justification.ShouldNotBeNull();
+        justification.ShouldContain("[PII detected: email]");
+        justification.ShouldContain("User email visible");
     }
 
     [Fact]

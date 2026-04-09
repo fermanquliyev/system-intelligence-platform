@@ -49,7 +49,8 @@ public static class LlmResponseParser
                 ConfidenceScore = dto.ConfidenceScore.HasValue ? (int)Math.Clamp(dto.ConfidenceScore.Value * 100, 0, 100) : 50,
                 KeyPhrases = dto.KeyPhrases ?? new List<string>(),
                 Entities = new List<string>(),
-                SentimentScore = null
+                SentimentScore = null,
+                SuggestedSeverity = MapSeverity(dto.Severity)
             };
             return true;
         }
@@ -57,5 +58,18 @@ public static class LlmResponseParser
         {
             return false;
         }
+    }
+
+    private static IncidentSeverity? MapSeverity(string? s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return null;
+        return s.Trim() switch
+        {
+            "Low" => IncidentSeverity.Low,
+            "Medium" => IncidentSeverity.Medium,
+            "High" => IncidentSeverity.High,
+            "Critical" => IncidentSeverity.Critical,
+            _ => null
+        };
     }
 }
