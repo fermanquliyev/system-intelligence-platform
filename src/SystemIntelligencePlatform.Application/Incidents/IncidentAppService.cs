@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using SystemIntelligencePlatform.MonitoredApplications;
@@ -18,13 +17,13 @@ public class IncidentAppService : ApplicationService, IIncidentAppService
     private readonly IIncidentRepository _incidentRepository;
     private readonly IRepository<IncidentComment, Guid> _commentRepository;
     private readonly IRepository<MonitoredApplication, Guid> _applicationRepository;
-    private readonly IAzureSearchService _searchService;
+    private readonly IIncidentSearchService _searchService;
 
     public IncidentAppService(
         IIncidentRepository incidentRepository,
         IRepository<IncidentComment, Guid> commentRepository,
         IRepository<MonitoredApplication, Guid> applicationRepository,
-        IAzureSearchService searchService)
+        IIncidentSearchService searchService)
     {
         _incidentRepository = incidentRepository;
         _commentRepository = commentRepository;
@@ -63,8 +62,7 @@ public class IncidentAppService : ApplicationService, IIncidentAppService
 
         var totalCount = await AsyncExecuter.CountAsync(queryable);
 
-        var sorted = queryable
-            .OrderBy(input.Sorting.IsNullOrWhiteSpace() ? "LastOccurrence desc" : input.Sorting)
+        var sorted = ApplyIncidentSorting(queryable, input.Sorting)
             .Skip(input.SkipCount)
             .Take(input.MaxResultCount);
 
@@ -74,11 +72,7 @@ public class IncidentAppService : ApplicationService, IIncidentAppService
         var apps = await AsyncExecuter.ToListAsync(appQueryable.Where(a => appIds.Contains(a.Id)));
         var appLookup = apps.ToDictionary(a => a.Id, a => a.Name);
 
-        var dtos = ObjectMapper.Map<List<Incident>, List<IncidentDto>>(incidents);
-        foreach (var dto in dtos)
-        {
-            dto.ApplicationName = appLookup.GetValueOrDefault(dto.ApplicationId, "Unknown");
-        }
+        var dtos = incidents.Select(i => MapIncidentListDto(i, appLookup.GetValueOrDefault(i.ApplicationId, "Unknown"))).ToList();
 
         return new PagedResultDto<IncidentDto>(totalCount, dtos);
     }
@@ -166,5 +160,64 @@ public class IncidentAppService : ApplicationService, IIncidentAppService
         var queryable = await _commentRepository.GetQueryableAsync();
         return await AsyncExecuter.ToListAsync(
             queryable.Where(c => c.IncidentId == incidentId).OrderByDescending(c => c.CreationTime).Take(50));
+    }
+
+    private static IQueryable<Incident> ApplyIncidentSorting(IQueryable<Incident> query, string? sorting)
+    {
+        if (sorting.IsNullOrWhiteSpace())
+        {
+            return query.OrderByDescending(i => i.LastOccurrence);
+        }
+
+        var parts = sorting.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var field = parts[0].Trim().ToLowerInvariant();
+        var desc = parts.Length > 1 && parts[1].Equals("desc", StringComparison.OrdinalIgnoreCase);
+
+        return field switch
+        {
+            "title" => desc ? query.OrderByDescending(i => i.Title) : query.OrderBy(i => i.Title),
+            "severity" => desc ? query.OrderByDescending(i => i.Severity) : query.OrderBy(i => i.Severity),
+            "status" => desc ? query.OrderByDescending(i => i.Status) : query.OrderBy(i => i.Status),
+            "occurrencecount" => desc ? query.OrderByDescending(i => i.OccurrenceCount) : query.OrderBy(i => i.OccurrenceCount),
+            "firstoccurrence" => desc ? query.OrderByDescending(i => i.FirstOccurrence) : query.OrderBy(i => i.FirstOccurrence),
+            "creationtime" => desc ? query.OrderByDescending(i => i.CreationTime) : query.OrderBy(i => i.CreationTime),
+            "lastoccurrence" => desc ? query.OrderByDescending(i => i.LastOccurrence) : query.OrderBy(i => i.LastOccurrence),
+            _ => query.OrderByDescending(i => i.LastOccurrence),
+        };
+    }
+
+    private static IncidentDto MapIncidentListDto(Incident incident, string applicationName)
+    {
+        return new IncidentDto
+        {
+            Id = incident.Id,
+            ApplicationId = incident.ApplicationId,
+            ApplicationName = applicationName,
+            Title = incident.Title,
+            Description = incident.Description,
+            Severity = incident.Severity,
+            Status = incident.Status,
+            HashSignature = incident.HashSignature,
+            OccurrenceCount = incident.OccurrenceCount,
+            FirstOccurrence = incident.FirstOccurrence,
+            LastOccurrence = incident.LastOccurrence,
+            SentimentScore = incident.SentimentScore,
+            KeyPhrases = incident.KeyPhrases,
+            Entities = incident.Entities,
+            RootCauseSummary = incident.RootCauseSummary,
+            SuggestedFix = incident.SuggestedFix,
+            SeverityJustification = incident.SeverityJustification,
+            ConfidenceScore = incident.ConfidenceScore,
+            AiAnalyzedAt = incident.AiAnalyzedAt,
+            ResolvedAt = incident.ResolvedAt,
+            CreationTime = incident.CreationTime,
+            CreatorId = incident.CreatorId,
+            LastModificationTime = incident.LastModificationTime,
+            LastModifierId = incident.LastModifierId,
+            IsDeleted = incident.IsDeleted,
+            DeleterId = incident.DeleterId,
+            DeletionTime = incident.DeletionTime,
+            Comments = new List<IncidentCommentDto>()
+        };
     }
 }

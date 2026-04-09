@@ -2,12 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PermissionDirective } from '@abp/ng.core';
-import {
-  InstanceConfigurationService,
-  InstanceConfigurationSnapshotDto,
-  InstanceFeatureStateDto,
-  InstanceSettingStateDto,
-} from '../proxy/instance-configuration/instance-configuration.service';
+import { InstanceConfigurationService } from '../proxy/instance-configuration/instance-configuration.service';
 
 @Component({
   selector: 'app-instance-settings',
@@ -36,7 +31,7 @@ export class InstanceSettingsComponent implements OnInit {
   load() {
     this.loading = true;
     this.loadError = null;
-    this.service.get().subscribe({
+    this.service.getSnapshot().subscribe({
       next: data => {
         this.loading = false;
         if (!data || !Array.isArray(data.features) || !Array.isArray(data.settings)) {

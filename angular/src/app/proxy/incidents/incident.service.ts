@@ -1,97 +1,72 @@
-import { Injectable } from '@angular/core';
-import { RestService } from '@abp/ng.core';
-import { Observable } from 'rxjs';
+import { RestService, Rest } from '@abp/ng.core';
+import type { PagedResultDto, PagedResultRequestDto } from '@abp/ng.core';
+import { Injectable, inject } from '@angular/core';
 
-export interface IncidentDto {
-  id: string;
-  applicationId: string;
-  applicationName: string;
-  title: string;
-  description?: string;
-  severity: number;
-  status: number;
-  hashSignature: string;
-  occurrenceCount: number;
-  firstOccurrence: string;
-  lastOccurrence: string;
-  sentimentScore?: number;
-  keyPhrases?: string;
-  entities?: string;
-  aiAnalyzedAt?: string;
-  resolvedAt?: string;
-  comments: IncidentCommentDto[];
-}
-
-export interface IncidentCommentDto {
-  id: string;
-  incidentId: string;
-  content: string;
-  creationTime: string;
-  creatorId: string;
-}
-
-export interface IncidentSearchResultDto {
-  totalCount: number;
-  items: IncidentSearchItemDto[];
-}
-
-export interface IncidentSearchItemDto {
-  id: string;
-  title: string;
-  description?: string;
-  severity: string;
-  applicationName: string;
-  keyPhrases?: string;
-  entities?: string;
-}
-
-export const severityOptions = [
-  { value: 0, label: 'Low' },
-  { value: 1, label: 'Medium' },
-  { value: 2, label: 'High' },
-  { value: 3, label: 'Critical' },
-];
-
-export const statusOptions = [
-  { value: 0, label: 'Open' },
-  { value: 1, label: 'Acknowledged' },
-  { value: 2, label: 'In Progress' },
-  { value: 3, label: 'Resolved' },
-  { value: 4, label: 'Closed' },
-];
-
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class IncidentService {
-  apiName = 'default';
-  url = '/api/app/incident';
+  private restService = inject(RestService);
+  apiName = 'Default';
+  
 
-  constructor(private rest: RestService) {}
+  addComment = (incidentId: string, input: CreateIncidentCommentDto, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, IncidentCommentDto>({
+      method: 'POST',
+      url: `/api/app/incident/comment/${incidentId}`,
+      body: input,
+    },
+    { apiName: this.apiName,...config });
+  
 
-  getList(params: any): Observable<any> {
-    return this.rest.request({ method: 'GET', url: this.url, params }, { apiName: this.apiName });
-  }
+  get = (id: string, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, IncidentDto>({
+      method: 'GET',
+      url: `/api/app/incident/${id}`,
+    },
+    { apiName: this.apiName,...config });
+  
 
-  get(id: string): Observable<IncidentDto> {
-    return this.rest.request({ method: 'GET', url: `${this.url}/${id}` }, { apiName: this.apiName });
-  }
+  getComments = (incidentId: string, input: PagedResultRequestDto, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, PagedResultDto<IncidentCommentDto>>({
+      method: 'GET',
+      url: `/api/app/incident/comments/${incidentId}`,
+      params: { skipCount: input.skipCount, maxResultCount: input.maxResultCount },
+    },
+    { apiName: this.apiName,...config });
+  
 
-  resolve(id: string): Observable<IncidentDto> {
-    return this.rest.request({ method: 'POST', url: `${this.url}/${id}/resolve` }, { apiName: this.apiName });
-  }
+  getList = (input: GetIncidentListInput, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, PagedResultDto<IncidentDto>>({
+      method: 'GET',
+      url: '/api/app/incident',
+      params: { applicationId: input.applicationId, severity: input.severity, status: input.status, filter: input.filter, sorting: input.sorting, skipCount: input.skipCount, maxResultCount: input.maxResultCount },
+    },
+    { apiName: this.apiName,...config });
+  
 
-  updateStatus(id: string, status: number): Observable<IncidentDto> {
-    return this.rest.request({ method: 'PUT', url: `${this.url}/${id}/status`, params: { status } }, { apiName: this.apiName });
-  }
+  resolve = (id: string, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, IncidentDto>({
+      method: 'POST',
+      url: `/api/app/incident/${id}/resolve`,
+    },
+    { apiName: this.apiName,...config });
+  
 
-  addComment(incidentId: string, content: string): Observable<IncidentCommentDto> {
-    return this.rest.request({ method: 'POST', url: `${this.url}/${incidentId}/comments`, body: { content } }, { apiName: this.apiName });
-  }
+  search = (input: IncidentSearchRequestDto, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, IncidentSearchResultDto>({
+      method: 'POST',
+      url: '/api/app/incident/search',
+      body: input,
+    },
+    { apiName: this.apiName,...config });
+  
 
-  getComments(incidentId: string, params: any): Observable<any> {
-    return this.rest.request({ method: 'GET', url: `${this.url}/${incidentId}/comments`, params }, { apiName: this.apiName });
-  }
-
-  search(body: { query: string; skip?: number; take?: number }): Observable<IncidentSearchResultDto> {
-    return this.rest.request({ method: 'POST', url: '/api/app/incidents/search', body }, { apiName: this.apiName });
-  }
+  updateStatus = (id: string, status: IncidentStatus, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, IncidentDto>({
+      method: 'PUT',
+      url: `/api/app/incident/${id}/status`,
+      params: { status },
+    },
+    { apiName: this.apiName,...config });
 }

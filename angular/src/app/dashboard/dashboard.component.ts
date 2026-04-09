@@ -2,7 +2,7 @@ import { Component, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { LocalizationPipe } from '@abp/ng.core';
-import { DashboardService, DashboardDto } from '../proxy/dashboard/dashboard.service';
+import { DashboardService } from '../proxy/dashboard/dashboard.service';
 
 @Component({
   selector: 'app-dashboard',

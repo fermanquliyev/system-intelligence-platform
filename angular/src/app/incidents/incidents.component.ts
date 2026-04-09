@@ -15,10 +15,22 @@ import {
 } from '@abp/ng.theme.shared';
 import {
   IncidentService,
-  IncidentDto,
-  severityOptions,
-  statusOptions,
 } from '../proxy/incidents/incident.service';
+
+const severityOptions = [
+  { value: 0, label: 'Low' },
+  { value: 1, label: 'Medium' },
+  { value: 2, label: 'High' },
+  { value: 3, label: 'Critical' },
+];
+
+const statusOptions = [
+  { value: 0, label: 'Open' },
+  { value: 1, label: 'Acknowledged' },
+  { value: 2, label: 'In Progress' },
+  { value: 3, label: 'Resolved' },
+  { value: 4, label: 'Closed' },
+];
 
 @Component({
   selector: 'app-incidents',

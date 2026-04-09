@@ -4,16 +4,16 @@ import { Injectable, inject } from '@angular/core';
 @Injectable({
   providedIn: 'root',
 })
-export class DashboardService {
+export class IncidentSearchService {
   private restService = inject(RestService);
   apiName = 'Default';
   
 
-  get = (applicationId?: string, config?: Partial<Rest.Config>) =>
-    this.restService.request<any, DashboardDto>({
-      method: 'GET',
-      url: '/api/app/dashboard',
-      params: { applicationId },
+  search = (input: IncidentSearchRequestDto, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, IncidentSearchResultDto>({
+      method: 'POST',
+      url: '/api/app/incidents/search',
+      body: input,
     },
     { apiName: this.apiName,...config });
 }

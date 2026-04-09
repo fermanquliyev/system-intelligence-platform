@@ -7,7 +7,7 @@ namespace SystemIntelligencePlatform.Incidents;
 /// <summary>
 /// Indexes and searches incidents. The EF Core implementation queries PostgreSQL directly.
 /// </summary>
-public interface IAzureSearchService
+public interface IIncidentSearchService
 {
     Task IndexIncidentAsync(IncidentSearchDocument document);
     Task<IncidentSearchResult> SearchAsync(string query, int skip = 0, int take = 20);

@@ -8,6 +8,7 @@ namespace SystemIntelligencePlatform.Controllers;
 
 [Route("api/app/incidents/search")]
 [Authorize(SystemIntelligencePlatformPermissions.Incidents.Search)]
+[IgnoreAntiforgeryToken]
 public class IncidentSearchController : SystemIntelligencePlatformController
 {
     private readonly IIncidentAppService _incidentAppService;

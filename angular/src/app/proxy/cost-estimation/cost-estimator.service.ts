@@ -4,16 +4,16 @@ import { Injectable, inject } from '@angular/core';
 @Injectable({
   providedIn: 'root',
 })
-export class DashboardService {
+export class CostEstimatorService {
   private restService = inject(RestService);
   apiName = 'Default';
   
 
-  get = (applicationId?: string, config?: Partial<Rest.Config>) =>
-    this.restService.request<any, DashboardDto>({
-      method: 'GET',
-      url: '/api/app/dashboard',
-      params: { applicationId },
+  calculateByInput = (input: CostEstimateInput, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, CostEstimateDto>({
+      method: 'POST',
+      url: '/api/app/cost-estimator/calculate',
+      body: input,
     },
     { apiName: this.apiName,...config });
 }

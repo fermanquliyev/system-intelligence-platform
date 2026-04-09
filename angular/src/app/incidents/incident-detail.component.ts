@@ -5,10 +5,22 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { LocalizationPipe, PermissionDirective } from '@abp/ng.core';
 import {
   IncidentService,
-  IncidentDto,
-  severityOptions,
-  statusOptions,
 } from '../proxy/incidents/incident.service';
+
+const severityOptions = [
+  { value: 0, label: 'Low' },
+  { value: 1, label: 'Medium' },
+  { value: 2, label: 'High' },
+  { value: 3, label: 'Critical' },
+];
+
+const statusOptions = [
+  { value: 0, label: 'Open' },
+  { value: 1, label: 'Acknowledged' },
+  { value: 2, label: 'In Progress' },
+  { value: 3, label: 'Resolved' },
+  { value: 4, label: 'Closed' },
+];
 
 @Component({
   selector: 'app-incident-detail',
@@ -44,7 +56,7 @@ export class IncidentDetailComponent implements OnInit {
 
   addComment() {
     if (!this.incident || !this.newComment.trim()) return;
-    this.incidentService.addComment(this.incident.id, this.newComment).subscribe(() => {
+    this.incidentService.addComment(this.incident.id, { content: this.newComment }).subscribe(() => {
       this.newComment = '';
       this.loadIncident(this.incident!.id);
     });

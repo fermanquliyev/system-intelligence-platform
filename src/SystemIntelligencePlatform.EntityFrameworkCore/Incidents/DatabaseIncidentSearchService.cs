@@ -12,7 +12,7 @@ namespace SystemIntelligencePlatform.EntityFrameworkCore.Incidents;
 /// <summary>
 /// Search incidents using EF Core queries against PostgreSQL (ILIKE for case-insensitive match).
 /// </summary>
-public class DatabaseIncidentSearchService : IAzureSearchService, ITransientDependency
+public class DatabaseIncidentSearchService : IIncidentSearchService, ITransientDependency
 {
     private readonly IDbContextProvider<SystemIntelligencePlatformDbContext> _dbContextProvider;
 

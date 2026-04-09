@@ -18,10 +18,8 @@ import {
   ModalComponent,
 } from '@abp/ng.theme.shared';
 import {
-  ApplicationService,
-  MonitoredApplicationDto,
-  ApiKeyResultDto,
-} from '../proxy/applications/application.service';
+  MonitoredApplicationService,
+} from '../proxy/monitored-applications/monitored-application.service';
 
 @Component({
   selector: 'app-applications',
@@ -43,7 +41,7 @@ import {
 })
 export class ApplicationsComponent implements OnInit {
   readonly list = inject(ListService);
-  private appService = inject(ApplicationService);
+  private appService = inject(MonitoredApplicationService);
   private fb = inject(FormBuilder);
   private confirmation = inject(ConfirmationService);
 

@@ -1,76 +1,44 @@
-import { Injectable } from '@angular/core';
-import { RestService } from '@abp/ng.core';
-import { Observable } from 'rxjs';
+import { RestService, Rest } from '@abp/ng.core';
+import { Injectable, inject } from '@angular/core';
 
-export interface InstanceConfigurationSnapshotDto {
-  features: InstanceFeatureStateDto[];
-  settings: InstanceSettingStateDto[];
-}
-
-export interface InstanceFeatureStateDto {
-  id: string;
-  name: string;
-  displayName: string;
-  description?: string;
-  isEnabled: boolean;
-  displayOrder: number;
-}
-
-export interface InstanceSettingStateDto {
-  key: string;
-  displayName: string;
-  description?: string;
-  category: string;
-  isSecret: boolean;
-  effectiveDisplayValue: string;
-  isOverriddenInDatabase: boolean;
-}
-
-export interface UpdateInstanceFeaturesDto {
-  features: Record<string, boolean>;
-}
-
-export interface UpdateInstanceSettingsDto {
-  values: Record<string, string | null | undefined>;
-}
-
-export interface ApplyMigrationsResultDto {
-  success: boolean;
-  message?: string;
-}
-
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class InstanceConfigurationService {
-  apiName = 'default';
-  private base = '/api/app/instance-configuration';
+  private restService = inject(RestService);
+  apiName = 'Default';
+  
 
-  constructor(private rest: RestService) {}
+  applyMigrations = (config?: Partial<Rest.Config>) =>
+    this.restService.request<any, ApplyMigrationsResultDto>({
+      method: 'POST',
+      url: '/api/app/instance-configuration/apply-migrations',
+    },
+    { apiName: this.apiName,...config });
+  
 
-  get(): Observable<InstanceConfigurationSnapshotDto> {
-    return this.rest.request(
-      { method: 'GET', url: `${this.base}/snapshot` },
-      { apiName: this.apiName },
-    );
-  }
+  getSnapshot = (config?: Partial<Rest.Config>) =>
+    this.restService.request<any, InstanceConfigurationSnapshotDto>({
+      method: 'GET',
+      url: '/api/app/instance-configuration/snapshot',
+    },
+    { apiName: this.apiName,...config });
+  
 
-  updateFeatures(body: UpdateInstanceFeaturesDto): Observable<void> {
-    return this.rest.request(
-      { method: 'PUT', url: `${this.base}/features`, body },
-      { apiName: this.apiName },
-    );
-  }
+  updateFeatures = (input: UpdateInstanceFeaturesDto, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, void>({
+      method: 'PUT',
+      url: '/api/app/instance-configuration/features',
+      body: input,
+    },
+    { apiName: this.apiName,...config });
+  
 
-  updateSettings(body: UpdateInstanceSettingsDto): Observable<void> {
-    return this.rest.request(
-      { method: 'PUT', url: `${this.base}/settings`, body },
-      { apiName: this.apiName },
-    );
-  }
-
-  applyMigrations(): Observable<ApplyMigrationsResultDto> {
-    return this.rest.request(
-      { method: 'POST', url: `${this.base}/apply-migrations` },
-      { apiName: this.apiName },
-    );
-  }
+  updateSettings = (input: UpdateInstanceSettingsDto, config?: Partial<Rest.Config>) =>
+    this.restService.request<any, void>({
+      method: 'PUT',
+      url: '/api/app/instance-configuration/settings',
+      body: input,
+    },
+    { apiName: this.apiName,...config });
 }
