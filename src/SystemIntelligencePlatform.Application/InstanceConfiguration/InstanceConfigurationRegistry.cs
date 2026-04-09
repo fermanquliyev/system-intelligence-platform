@@ -149,6 +149,36 @@ public static class InstanceConfigurationRegistry
                 Category = "Rate limiting",
                 IsSecret = false
             },
+            new()
+            {
+                Key = "Minio:Endpoint",
+                DisplayName = "MinIO endpoint",
+                Description = "Host and port only (no scheme), e.g. localhost:9000 or minio:9000 in Docker. Applied on next blob operation.",
+                Category = "MinIO",
+                IsSecret = false
+            },
+            new()
+            {
+                Key = "Minio:AccessKey",
+                DisplayName = "MinIO access key",
+                Category = "MinIO",
+                IsSecret = false
+            },
+            new()
+            {
+                Key = "Minio:SecretKey",
+                DisplayName = "MinIO secret key",
+                Category = "MinIO",
+                IsSecret = true
+            },
+            new()
+            {
+                Key = "Minio:UseSsl",
+                DisplayName = "MinIO use SSL",
+                Description = "true or false. Applied on next blob operation.",
+                Category = "MinIO",
+                IsSecret = false
+            },
         };
 
     public static InstanceSettingDefinition? FindSetting(string key) =>

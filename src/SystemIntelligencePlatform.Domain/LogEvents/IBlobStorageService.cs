@@ -4,7 +4,7 @@ namespace SystemIntelligencePlatform.LogEvents;
 
 /// <summary>
 /// Abstraction for blob storage used by the archival process.
-/// Infrastructure provides the Azure Blob Storage implementation.
+/// Infrastructure provides the implementation (MinIO / S3-compatible API in production).
 /// </summary>
 public interface IBlobStorageService
 {

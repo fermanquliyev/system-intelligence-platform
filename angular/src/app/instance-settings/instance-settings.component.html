@@ -31,13 +31,23 @@
   </div>
 
   <div class="card border-0 shadow-sm mb-3" *ngFor="let group of groupedSettings">
-    <div class="card-header bg-white fw-bold">{{ group.category }}</div>
+    <div class="card-header bg-white fw-bold">{{ categoryLabel(group.category) }}</div>
     <div class="card-body">
       <div class="mb-3" *ngFor="let s of group.items">
         <label class="form-label small text-muted mb-0">{{ s.displayName }} <code class="ms-1">{{ s.key }}</code></label>
         <p class="small text-muted mb-1" *ngIf="s.description">{{ s.description }}</p>
+        <div *ngIf="!s.isSecret && isMinioUseSslKey(s.key)" class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            [id]="'set-' + s.key"
+            [ngModel]="minioUseSslChecked(s)"
+            (ngModelChange)="setMinioUseSsl(s.key, $event)"
+          />
+          <label class="form-check-label" [for]="'set-' + s.key">{{ '::InstanceSettings.MinioUseSslHint' | abpLocalization }}</label>
+        </div>
         <input
-          *ngIf="!s.isSecret"
+          *ngIf="!s.isSecret && !isMinioUseSslKey(s.key)"
           type="text"
           class="form-control"
           [(ngModel)]="settingEdits[s.key]"

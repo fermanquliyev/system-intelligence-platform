@@ -5,6 +5,7 @@
     <Folder Name="/src/">
         <Project Path="src/SystemIntelligencePlatform.Application.Contracts/SystemIntelligencePlatform.Application.Contracts.csproj" />
         <Project Path="src/SystemIntelligencePlatform.Application/SystemIntelligencePlatform.Application.csproj" />
+        <Project Path="src/SystemIntelligencePlatform.BlobStorage/SystemIntelligencePlatform.BlobStorage.csproj" />
         <Project Path="src/SystemIntelligencePlatform.BackgroundWorker/SystemIntelligencePlatform.BackgroundWorker.csproj" />
         <Project Path="src/SystemIntelligencePlatform.DbMigrator/SystemIntelligencePlatform.DbMigrator.csproj" />
         <Project Path="src/SystemIntelligencePlatform.Domain.Shared/SystemIntelligencePlatform.Domain.Shared.csproj" />

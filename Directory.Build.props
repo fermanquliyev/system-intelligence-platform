@@ -1,0 +1,9 @@
+<Project>
+  <!--
+    Volo.Abp.TextTemplating.Scriban pulls Scriban 6.3.0, which is flagged by NuGet/GitHub advisories
+    (e.g. GHSA-xw6w-9jjh-p9cr). A direct reference wins dependency resolution and upgrades the graph.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Scriban" Version="7.1.0" />
+  </ItemGroup>
+</Project>

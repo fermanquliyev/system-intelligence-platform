@@ -29,6 +29,24 @@ services:
       timeout: 5s
       retries: 5
 
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
   migrator:
     build:
       context: .
@@ -52,6 +70,8 @@ services:
       postgres:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      minio:
         condition: service_healthy
       migrator:
         condition: service_completed_successfully
@@ -78,6 +98,10 @@ services:
       AI__Model: ${AI__Model:-gemma-3-4b-it}
       AI__ApiKey: ${AI__ApiKey:-}
       DataRetention__LogRetentionDays: ${DataRetention__LogRetentionDays:-90}
+      Minio__Endpoint: minio:9000
+      Minio__AccessKey: minio
+      Minio__SecretKey: minioadmin
+      Minio__UseSsl: "false"
     ports:
       - "44397:8080"
 
@@ -114,3 +138,4 @@ services:
 
 volumes:
   postgres_data: {}
+  minio_data: {}

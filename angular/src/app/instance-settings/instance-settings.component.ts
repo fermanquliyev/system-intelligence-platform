@@ -128,4 +128,32 @@ export class InstanceSettingsComponent implements OnInit {
   trackFeature(_i: number, f: InstanceFeatureStateDto) {
     return f.id;
   }
+
+  categoryLabel(category: string): string {
+    if (category === 'MinIO') {
+      return this.localization.instant('::InstanceSettings.CategoryMinIO');
+    }
+    return category;
+  }
+
+  isMinioUseSslKey(key: string): boolean {
+    return key === 'Minio:UseSsl';
+  }
+
+  minioUseSslChecked(s: InstanceSettingStateDto): boolean {
+    const raw = this.settingEdits[s.key];
+    if (raw != null && String(raw).trim() !== '') {
+      return this.parseTruthyString(String(raw));
+    }
+    return this.parseTruthyString(s.effectiveDisplayValue ?? '');
+  }
+
+  setMinioUseSsl(key: string, checked: boolean) {
+    this.settingEdits[key] = checked ? 'true' : 'false';
+  }
+
+  private parseTruthyString(v: string): boolean {
+    const t = String(v).trim().toLowerCase();
+    return t === 'true' || t === '1' || t === 'yes';
+  }
 }

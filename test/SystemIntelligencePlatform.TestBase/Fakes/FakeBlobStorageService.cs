@@ -12,7 +12,7 @@ namespace SystemIntelligencePlatform.Fakes;
 [Dependency(ReplaceServices = true)]
 public class FakeBlobStorageService : IBlobStorageService, ITransientDependency
 {
-    public List<(string Container, string BlobName, string Content)> Uploads { get; } = new();
+    public List<(string Container, string BlobName, string Content)> Uploads { get; } = [];
 
     public Task UploadAsync(string containerName, string blobName, string content)
     {

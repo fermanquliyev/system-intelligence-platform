@@ -13,6 +13,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.Extensions.DependencyInjection;
 using OpenIddict.Validation.AspNetCore;
 using OpenIddict.Server.AspNetCore;
+using SystemIntelligencePlatform.BlobStorage;
 using SystemIntelligencePlatform.EntityFrameworkCore;
 using SystemIntelligencePlatform.Infrastructure;
 using SystemIntelligencePlatform.Realtime;
@@ -48,6 +49,7 @@ namespace SystemIntelligencePlatform;
     typeof(AbpAspNetCoreMvcUiLeptonXLiteThemeModule),
     typeof(AbpAutofacModule),
     typeof(SystemIntelligencePlatformApplicationModule),
+    typeof(SystemIntelligencePlatformBlobStorageModule),
     typeof(SystemIntelligencePlatformEntityFrameworkCoreModule),
     typeof(AbpAccountWebOpenIddictModule),
     typeof(AbpSwashbuckleModule),

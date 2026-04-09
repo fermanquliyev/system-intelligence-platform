@@ -48,6 +48,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SystemIntelligencePlatform.BlobStorage\SystemIntelligencePlatform.BlobStorage.csproj" />
     <ProjectReference Include="..\SystemIntelligencePlatform.Application\SystemIntelligencePlatform.Application.csproj" />
     <ProjectReference Include="..\SystemIntelligencePlatform.HttpApi\SystemIntelligencePlatform.HttpApi.csproj" />
     <ProjectReference Include="..\SystemIntelligencePlatform.EntityFrameworkCore\SystemIntelligencePlatform.EntityFrameworkCore.csproj" />
