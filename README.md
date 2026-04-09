@@ -1,8 +1,8 @@
-# ErrorIntel
+# SystemIntelligencePlatform
 
-Open-source log analysis and incident detection for teams that want full control of their data. ErrorIntel ingests logs, detects anomalies, optionally enriches incidents with an LLM, and pushes live updates to the browser. It is **single-tenant**, **self-hosted**, and runs entirely on **PostgreSQL**, **RabbitMQ**, **ASP.NET Core**, and **Angular**—no SaaS, no tenant model, and no external cloud services required.
+Open-source log analysis and incident detection for teams that want full control of their data. SystemIntelligencePlatform ingests logs, detects anomalies, optionally enriches incidents with an LLM, and pushes live updates to the browser. It is **single-tenant**, **self-hosted**, and runs entirely on **PostgreSQL**, **RabbitMQ**, **ASP.NET Core**, and **Angular**—no SaaS, no tenant model, and no external cloud services required.
 
-The repository is still named **system-intelligence-platform**; the product name for documentation and users is **ErrorIntel**.
+The repository is still named **system-intelligence-platform**; the product name for documentation and users is **SystemIntelligencePlatform**.
 
 ## Features
 
@@ -87,4 +87,4 @@ dotnet test
 
 ---
 
-**Summary:** ErrorIntel is a production-style, readable codebase focused on one deployment per installation—no multi-tenancy, no subscriptions, and minimal moving parts beyond Postgres, RabbitMQ, and your optional LLM API key.
+**Summary:** SystemIntelligencePlatform is a production-style, readable codebase focused on one deployment per installation—no multi-tenancy, no subscriptions, and minimal moving parts beyond Postgres, RabbitMQ, and your optional LLM API key.

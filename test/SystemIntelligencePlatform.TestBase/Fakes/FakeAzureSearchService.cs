@@ -7,7 +7,7 @@ using Volo.Abp.DependencyInjection;
 namespace SystemIntelligencePlatform.Fakes;
 
 [Dependency(ReplaceServices = true)]
-public class FakeAzureSearchService : IAzureSearchService, ITransientDependency
+public class FakeSearchService : IIncidentSearchService, ITransientDependency
 {
     public Task IndexIncidentAsync(IncidentSearchDocument document)
     {

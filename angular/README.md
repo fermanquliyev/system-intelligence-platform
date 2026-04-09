@@ -1,6 +1,6 @@
-# ErrorIntel — Angular UI
+# SystemIntelligencePlatform — Angular UI
 
-Single-instance web UI for **ErrorIntel**: dashboard, applications, incidents, and settings. It talks to the ABP host API; there is **no tenant switcher, tenant headers, or per-tenant routing** — one deployment maps to one backend.
+Single-instance web UI for **SystemIntelligencePlatform**: dashboard, applications, incidents, and settings. It talks to the ABP host API; there is **no tenant switcher, tenant headers, or per-tenant routing** — one deployment maps to one backend.
 
 ## Requirements
 
@@ -32,7 +32,7 @@ The UI reads API and OAuth settings from:
 
 Set:
 
-- `apis.default.url` — base URL of the ErrorIntel host (e.g. `http://localhost:44397` or your Docker-published port)
+- `apis.default.url` — base URL of the SystemIntelligencePlatform host (e.g. `http://localhost:44397` or your Docker-published port)
 - `oAuthConfig.issuer` — usually the same origin as the API
 - `oAuthConfig.redirectUri` — Angular origin (e.g. `http://localhost:4200`)
 - `oAuthConfig.clientId` — must match the OpenIddict client on the server
