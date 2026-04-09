@@ -1,17 +1,6 @@
 ---
-description: "ABP development workflow - adding features, entities, and migrations"
-globs:
-  - "**/*AppService*.cs"
-  - "**/*Application*/**/*.cs"
-  - "**/*Application.Contracts*/**/*.cs"
-  - "**/*Dto*.cs"
-  - "**/*DbContext*.cs"
-  - "**/*.EntityFrameworkCore/**/*.cs"
-  - "**/*.MongoDB/**/*.cs"
-  - "**/*Permission*.cs"
-alwaysApply: false
+alwaysApply: true
 ---
-
 # ABP Development Workflow
 
 > **Tutorials**: https://abp.io/docs/latest/tutorials

@@ -1,17 +1,20 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PermissionDirective } from '@abp/ng.core';
+import { LocalizationPipe, LocalizationService, PermissionDirective } from '@abp/ng.core';
+import { Confirmation, ConfirmationService } from '@abp/ng.theme.shared';
 import { InstanceConfigurationService } from '../proxy/instance-configuration/instance-configuration.service';
 
 @Component({
   selector: 'app-instance-settings',
   templateUrl: './instance-settings.component.html',
   styleUrl: './instance-settings.component.scss',
-  imports: [CommonModule, FormsModule, PermissionDirective],
+  imports: [CommonModule, FormsModule, PermissionDirective, LocalizationPipe],
 })
 export class InstanceSettingsComponent implements OnInit {
   private service = inject(InstanceConfigurationService);
+  private confirmation = inject(ConfirmationService);
+  private localization = inject(LocalizationService);
 
   snapshot: InstanceConfigurationSnapshotDto | null = null;
   /** Precomputed in load(); do not call a method from the template (causes change-detection thrash / freeze). */
@@ -35,7 +38,7 @@ export class InstanceSettingsComponent implements OnInit {
       next: data => {
         this.loading = false;
         if (!data || !Array.isArray(data.features) || !Array.isArray(data.settings)) {
-          this.loadError = 'Invalid response from server.';
+          this.loadError = this.localization.instant('::InstanceSettings.InvalidResponseFromServer');
           this.snapshot = null;
           this.groupedSettings = [];
           return;
@@ -56,7 +59,7 @@ export class InstanceSettingsComponent implements OnInit {
         this.snapshot = null;
         this.groupedSettings = [];
         this.loadError =
-          err?.error?.error?.message ?? err?.message ?? 'Failed to load instance configuration.';
+          err?.error?.error?.message ?? err?.message ?? this.localization.instant('::InstanceSettings.FailedToLoadInstanceConfiguration');
       },
     });
   }
@@ -64,7 +67,7 @@ export class InstanceSettingsComponent implements OnInit {
   private buildGroupedSettings(settings: InstanceSettingStateDto[]) {
     const map = new Map<string, InstanceSettingStateDto[]>();
     for (const s of settings) {
-      const c = s.category || 'Other';
+      const c = s.category || this.localization.instant('::InstanceSettings.Other');
       if (!map.has(c)) map.set(c, []);
       map.get(c)!.push(s);
     }
@@ -101,20 +104,24 @@ export class InstanceSettingsComponent implements OnInit {
   }
 
   applyMigrations() {
-    if (!confirm('Apply pending EF Core migrations to this database?')) return;
-    this.migrateBusy = true;
-    this.migrateMessage = null;
-    this.service.applyMigrations().subscribe({
-      next: r => {
-        this.migrateMessage = r.success
-          ? (r.message ?? 'Migrations completed.')
-          : (r.message ?? 'Migrations failed.');
-        this.migrateBusy = false;
-      },
-      error: err => {
-        this.migrateMessage = err?.error?.error?.message ?? err?.message ?? 'Request failed';
-        this.migrateBusy = false;
-      },
+    this.confirmation.warn('::InstanceSettings.ApplyMigrationsConfirmationMessage', '::AreYouSure').subscribe(status => {
+      if (status !== Confirmation.Status.confirm) return;
+
+      this.migrateBusy = true;
+      this.migrateMessage = null;
+      this.service.applyMigrations().subscribe({
+        next: r => {
+          this.migrateMessage = r.success
+            ? (r.message ?? this.localization.instant('::InstanceSettings.MigrationsCompleted'))
+            : (r.message ?? this.localization.instant('::InstanceSettings.MigrationsFailed'));
+          this.migrateBusy = false;
+        },
+        error: err => {
+          this.migrateMessage =
+            err?.error?.error?.message ?? err?.message ?? this.localization.instant('::InstanceSettings.RequestFailed');
+          this.migrateBusy = false;
+        },
+      });
     });
   }
 

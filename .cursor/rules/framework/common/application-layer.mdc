@@ -1,13 +1,6 @@
 ---
-description: "ABP Application Services, DTOs, validation, and error handling patterns"
-globs:
-  - "**/*.Application/**/*.cs"
-  - "**/Application/**/*.cs"
-  - "**/*AppService*.cs"
-  - "**/*Dto*.cs"
-alwaysApply: false
+alwaysApply: true
 ---
-
 # ABP Application Layer Patterns
 
 > **Docs**: https://abp.io/docs/latest/framework/architecture/domain-driven-design/application-services

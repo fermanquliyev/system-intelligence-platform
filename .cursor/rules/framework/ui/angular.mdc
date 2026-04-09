@@ -1,12 +1,6 @@
 ---
-description: "ABP Angular UI patterns and best practices"
-globs:
-  - "**/angular/**/*.ts"
-  - "**/angular/**/*.html"
-  - "**/*.component.ts"
-alwaysApply: false
+alwaysApply: true
 ---
-
 # ABP Angular UI
 
 > **Docs**: https://abp.io/docs/latest/framework/ui/angular/overview

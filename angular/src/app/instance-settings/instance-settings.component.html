@@ -1,19 +1,18 @@
 <div class="container-fluid py-3" *ngIf="loadError">
   <div class="alert alert-danger">{{ loadError }}</div>
-  <button type="button" class="btn btn-outline-primary" (click)="load()">Retry</button>
+  <button type="button" class="btn btn-outline-primary" (click)="load()">{{ '::InstanceSettings.Retry' | abpLocalization }}</button>
 </div>
 
-<div class="container-fluid py-3" *ngIf="loading && !loadError">Loading…</div>
+<div class="container-fluid py-3" *ngIf="loading && !loadError">{{ '::InstanceSettings.Loading' | abpLocalization }}</div>
 
 <div class="container-fluid py-3" *ngIf="snapshot && !loading">
-  <h4 class="mb-3">Instance settings</h4>
+  <h4 class="mb-3">{{ '::Menu:InstanceSettings' | abpLocalization }}</h4>
   <p class="text-muted">
-    Values in the database override <code>appsettings.json</code> and environment variables. Leave secret fields blank to keep the current stored value.
-    Clear a non-secret field and save to remove the database override and fall back to configuration files.
+    {{ '::InstanceSettings.HelpText' | abpLocalization }}
   </p>
 
   <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white fw-bold">Feature flags</div>
+    <div class="card-header bg-white fw-bold">{{ '::InstanceSettings.FeatureFlags' | abpLocalization }}</div>
     <div class="card-body">
       <div class="form-check mb-3" *ngFor="let f of snapshot.features; trackBy: trackFeature">
         <input
@@ -27,9 +26,7 @@
           <span class="text-muted small d-block" *ngIf="f.description">{{ f.description }}</span>
         </label>
       </div>
-      <button class="btn btn-primary" type="button" (click)="saveFeatures()" [disabled]="saving">
-        Save features
-      </button>
+      <button class="btn btn-primary" type="button" (click)="saveFeatures()" [disabled]="saving">{{ '::InstanceSettings.SaveFeatures' | abpLocalization }}</button>
     </div>
   </div>
 
@@ -51,26 +48,26 @@
           type="password"
           class="form-control"
           [(ngModel)]="settingEdits[s.key]"
-          [attr.placeholder]="s.isOverriddenInDatabase ? '(stored — enter new value to replace)' : '(from configuration)'"
+          [attr.placeholder]="s.isOverriddenInDatabase ? ('::InstanceSettings.SecretStoredPlaceholder' | abpLocalization) : ('::InstanceSettings.SecretFromConfigurationPlaceholder' | abpLocalization)"
           autocomplete="off"
         />
-        <span class="badge bg-secondary mt-1" *ngIf="s.isOverriddenInDatabase">Database override</span>
+        <span class="badge bg-secondary mt-1" *ngIf="s.isOverriddenInDatabase">{{ '::InstanceSettings.DatabaseOverride' | abpLocalization }}</span>
       </div>
     </div>
   </div>
 
   <button class="btn btn-primary mb-4" type="button" (click)="saveSettings()" [disabled]="saving">
-    Save all settings
+    {{ '::InstanceSettings.SaveAllSettings' | abpLocalization }}
   </button>
 
   <div class="card border-0 shadow-sm border-warning" *abpPermission="'SystemIntelligencePlatform.InstanceConfiguration.Migrate'">
-    <div class="card-header bg-white fw-bold">Operations</div>
+    <div class="card-header bg-white fw-bold">{{ '::InstanceSettings.Operations' | abpLocalization }}</div>
     <div class="card-body">
       <p class="text-muted small">
-        Applies pending Entity Framework migrations (same as host startup). Use after upgrading the application package.
+        {{ '::InstanceSettings.OperationsDescription' | abpLocalization }}
       </p>
       <button class="btn btn-outline-danger" type="button" (click)="applyMigrations()" [disabled]="migrateBusy">
-        Apply database migrations
+        {{ '::InstanceSettings.ApplyDatabaseMigrations' | abpLocalization }}
       </button>
       <p class="small mt-2 mb-0" *ngIf="migrateMessage">{{ migrateMessage }}</p>
     </div>

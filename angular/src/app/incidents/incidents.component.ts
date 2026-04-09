@@ -8,6 +8,7 @@ import {
   PagedResultDto,
   LocalizationPipe,
   PermissionDirective,
+  LocalizationService,
 } from '@abp/ng.core';
 import {
   NgxDatatableDefaultDirective,
@@ -18,18 +19,18 @@ import {
 } from '../proxy/incidents/incident.service';
 
 const severityOptions = [
-  { value: 0, label: 'Low' },
-  { value: 1, label: 'Medium' },
-  { value: 2, label: 'High' },
-  { value: 3, label: 'Critical' },
+  { value: 0, key: '::Enum:IncidentSeverity.0' },
+  { value: 1, key: '::Enum:IncidentSeverity.1' },
+  { value: 2, key: '::Enum:IncidentSeverity.2' },
+  { value: 3, key: '::Enum:IncidentSeverity.3' },
 ];
 
 const statusOptions = [
-  { value: 0, label: 'Open' },
-  { value: 1, label: 'Acknowledged' },
-  { value: 2, label: 'In Progress' },
-  { value: 3, label: 'Resolved' },
-  { value: 4, label: 'Closed' },
+  { value: 0, key: '::Enum:IncidentStatus.0' },
+  { value: 1, key: '::Enum:IncidentStatus.1' },
+  { value: 2, key: '::Enum:IncidentStatus.2' },
+  { value: 3, key: '::Enum:IncidentStatus.3' },
+  { value: 4, key: '::Enum:IncidentStatus.4' },
 ];
 
 @Component({
@@ -50,6 +51,7 @@ const statusOptions = [
 export class IncidentsComponent implements OnInit {
   readonly list = inject(ListService);
   private incidentService = inject(IncidentService);
+  private localization = inject(LocalizationService);
 
   data = { items: [], totalCount: 0 } as PagedResultDto<IncidentDto>;
   severityOptions = severityOptions;
@@ -104,10 +106,12 @@ export class IncidentsComponent implements OnInit {
   }
 
   getSeverityLabel(severity: number): string {
-    return this.severityOptions.find(o => o.value === severity)?.label || 'Unknown';
+    const key = this.severityOptions.find(o => o.value === severity)?.key;
+    return key ? this.localization.instant(key) : this.localization.instant('::Incidents.Unknown');
   }
 
   getStatusLabel(status: number): string {
-    return this.statusOptions.find(o => o.value === status)?.label || 'Unknown';
+    const key = this.statusOptions.find(o => o.value === status)?.key;
+    return key ? this.localization.instant(key) : this.localization.instant('::Incidents.Unknown');
   }
 }

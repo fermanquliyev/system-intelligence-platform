@@ -83,7 +83,7 @@ export class ApplicationsComponent implements OnInit {
 
   regenerateApiKey(id: string) {
     this.confirmation
-      .warn('Are you sure you want to regenerate the API key? The old key will stop working.', '::AreYouSure')
+      .warn('::Applications.RegenerateApiKeyConfirmationMessage', '::AreYouSure')
       .subscribe(status => {
         if (status === Confirmation.Status.confirm) {
           this.appService.regenerateApiKey(id).subscribe(result => {
